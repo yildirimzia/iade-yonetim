@@ -4,6 +4,7 @@ require('dotenv').config();
 
 // Import routes
 const authRoutes = require('./routes/auth');
+const usersRoutes = require('./routes/users');
 const productsRoutes = require('./routes/products');
 const returnsRoutes = require('./routes/returns');
 const inventoryRoutes = require('./routes/inventory');
@@ -40,6 +41,7 @@ app.get('/health', (req, res) => {
 
 // API Routes
 app.use('/api/auth', authRoutes);
+app.use('/api/users', usersRoutes);
 app.use('/api/products', productsRoutes);
 app.use('/api/returns', returnsRoutes);
 app.use('/api/inventory', inventoryRoutes);
@@ -54,6 +56,7 @@ app.get('/', (req, res) => {
     endpoints: {
       health: '/health',
       auth: '/api/auth',
+      users: '/api/users',
       products: '/api/products',
       returns: '/api/returns',
       inventory: '/api/inventory',
