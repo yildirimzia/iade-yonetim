@@ -1,21 +1,22 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, FormEvent, ChangeEvent } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { authAPI } from '@/lib/api';
 import { setAuthData } from '@/lib/auth';
+import type { LoginFormData } from '@/types';
 
 export default function LoginPage() {
   const router = useRouter();
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<LoginFormData>({
     email: '',
     password: '',
   });
-  const [error, setError] = useState('');
-  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string>('');
+  const [loading, setLoading] = useState<boolean>(false);
 
-  const handleChange = (e) => {
+  const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
     setFormData({
       ...formData,
       [e.target.name]: e.target.value,
@@ -23,7 +24,7 @@ export default function LoginPage() {
     setError('');
   };
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setLoading(true);
     setError('');
@@ -31,11 +32,11 @@ export default function LoginPage() {
     try {
       const response = await authAPI.login(formData.email, formData.password);
 
-      if (response.success) {
+      if (response.success && response.data) {
         setAuthData(response.data.token, response.data.user);
         router.push('/dashboard');
       }
-    } catch (err) {
+    } catch (err: any) {
       setError(err.response?.data?.message || 'Giriş yapılamadı. Lütfen tekrar deneyin.');
     } finally {
       setLoading(false);

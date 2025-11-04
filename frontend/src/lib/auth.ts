@@ -1,40 +1,47 @@
+import type { User } from '@/types';
+
 // Auth utility functions
 
-export const setAuthData = (token, user) => {
+export interface AuthDataReturn {
+  token: string | null;
+  user: User | null;
+}
+
+export const setAuthData = (token: string, user: User): void => {
   if (typeof window !== 'undefined') {
     localStorage.setItem('token', token);
     localStorage.setItem('user', JSON.stringify(user));
   }
 };
 
-export const getAuthData = () => {
+export const getAuthData = (): AuthDataReturn => {
   if (typeof window !== 'undefined') {
     const token = localStorage.getItem('token');
     const userStr = localStorage.getItem('user');
-    const user = userStr ? JSON.parse(userStr) : null;
+    const user = userStr ? (JSON.parse(userStr) as User) : null;
     return { token, user };
   }
   return { token: null, user: null };
 };
 
-export const clearAuthData = () => {
+export const clearAuthData = (): void => {
   if (typeof window !== 'undefined') {
     localStorage.removeItem('token');
     localStorage.removeItem('user');
   }
 };
 
-export const isAuthenticated = () => {
+export const isAuthenticated = (): boolean => {
   const { token } = getAuthData();
   return !!token;
 };
 
-export const isAdmin = () => {
+export const isAdmin = (): boolean => {
   const { user } = getAuthData();
   return user?.role === 'admin';
 };
 
-export const isSeller = () => {
+export const isSeller = (): boolean => {
   const { user } = getAuthData();
   return user?.role === 'seller';
 };
