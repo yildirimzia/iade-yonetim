@@ -3,12 +3,20 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { isAdmin } from '@/lib/auth';
+import type { UserRole } from '@/types';
+
+interface NavigationItem {
+  name: string;
+  href: string;
+  icon: string;
+  roles: UserRole[];
+}
 
 export default function Sidebar() {
   const pathname = usePathname();
   const userIsAdmin = isAdmin();
 
-  const navigation = [
+  const navigation: NavigationItem[] = [
     {
       name: 'Dashboard',
       href: '/dashboard',

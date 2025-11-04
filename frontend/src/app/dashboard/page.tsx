@@ -8,16 +8,24 @@ import StatsCard from '@/components/StatsCard';
 import Loading from '@/components/Loading';
 import { isAuthenticated, getAuthData, isAdmin } from '@/lib/auth';
 import { productsAPI, returnsAPI, shipmentsAPI, inventoryAPI } from '@/lib/api';
+import type { ReturnStats, ShipmentStats, InventoryStats } from '@/types';
+
+interface DashboardStats {
+  products: number;
+  returns: ReturnStats;
+  shipments: ShipmentStats;
+  inventory: InventoryStats;
+}
 
 export default function DashboardPage() {
   const router = useRouter();
-  const [stats, setStats] = useState({
+  const [stats, setStats] = useState<DashboardStats>({
     products: 0,
-    returns: { total: 0, pending: 0 },
-    shipments: { total: 0 },
-    inventory: { total_items: 0 },
+    returns: { total: 0, pending: 0, received: 0, shipped: 0 },
+    shipments: { total: 0, preparing: 0, shipped: 0, delivered: 0 },
+    inventory: { total_items: 0, total_quantity: 0, good_condition: 0, damaged: 0, missing_parts: 0, locations: 0 },
   });
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState<boolean>(true);
   const { user } = getAuthData();
   const userIsAdmin = isAdmin();
 
@@ -40,17 +48,25 @@ export default function DashboardPage() {
 
       // Fetch returns stats
       const returnsRes = await returnsAPI.getStats();
-      const returnsStats = returnsRes.data || { total: 0, pending: 0 };
+      const returnsStats: ReturnStats = returnsRes.data || { total: 0, pending: 0, received: 0, shipped: 0 };
 
       // Fetch shipments stats
       const shipmentsRes = await shipmentsAPI.getStats();
-      const shipmentsStats = shipmentsRes.data || { total: 0 };
+      const shipmentsStats: ShipmentStats = shipmentsRes.data || { total: 0, preparing: 0, shipped: 0, delivered: 0 };
 
       // Fetch inventory stats (admin only)
-      let inventoryStats = { total_items: 0 };
+      let inventoryStats: InventoryStats = {
+        total_items: 0,
+        total_quantity: 0,
+        good_condition: 0,
+        damaged: 0,
+        missing_parts: 0,
+        locations: 0
+      };
+
       if (userIsAdmin) {
         const inventoryRes = await inventoryAPI.getStats();
-        inventoryStats = inventoryRes.data || { total_items: 0 };
+        inventoryStats = inventoryRes.data || inventoryStats;
       }
 
       setStats({

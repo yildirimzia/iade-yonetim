@@ -1,24 +1,25 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, FormEvent, ChangeEvent } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { authAPI } from '@/lib/api';
 import { setAuthData } from '@/lib/auth';
+import type { RegisterFormData } from '@/types';
 
 export default function RegisterPage() {
   const router = useRouter();
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<RegisterFormData>({
     name: '',
     email: '',
     password: '',
     phone: '',
     company: '',
   });
-  const [error, setError] = useState('');
-  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string>('');
+  const [loading, setLoading] = useState<boolean>(false);
 
-  const handleChange = (e) => {
+  const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
     setFormData({
       ...formData,
       [e.target.name]: e.target.value,
@@ -26,7 +27,7 @@ export default function RegisterPage() {
     setError('');
   };
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setLoading(true);
     setError('');
@@ -34,11 +35,11 @@ export default function RegisterPage() {
     try {
       const response = await authAPI.register(formData);
 
-      if (response.success) {
+      if (response.success && response.data) {
         setAuthData(response.data.token, response.data.user);
         router.push('/dashboard');
       }
-    } catch (err) {
+    } catch (err: any) {
       setError(err.response?.data?.message || 'Kayıt yapılamadı. Lütfen tekrar deneyin.');
     } finally {
       setLoading(false);
@@ -106,7 +107,7 @@ export default function RegisterPage() {
                 name="password"
                 type="password"
                 required
-                minLength="6"
+                minLength={6}
                 className="mt-1 input-field"
                 placeholder="Minimum 6 karakter"
                 value={formData.password}
