@@ -48,6 +48,18 @@ export default function Sidebar() {
       roles: ['admin'],
     },
     {
+      name: 'Kullanıcılar',
+      href: '/dashboard/users',
+      icon: '👥',
+      roles: ['admin'],
+    },
+    {
+      name: 'Satıcı Ürünleri',
+      href: '/dashboard/products',
+      icon: '📦',
+      roles: ['admin'],
+    },
+    {
       name: 'Profil',
       href: '/profile',
       icon: '👤',

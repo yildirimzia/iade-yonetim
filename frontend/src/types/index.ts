@@ -28,6 +28,7 @@ export interface Product {
   notes?: string;
   created_at: string;
   seller_name?: string;
+  company?: string;
   seller_email?: string;
 }
 
