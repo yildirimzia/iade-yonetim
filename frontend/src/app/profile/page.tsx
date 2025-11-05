@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { User } from '@/types';
 import { getAuthData } from '@/lib/auth';
+import { MdAccountCircle, MdNotifications, MdLock, MdPerson, MdEmail, MdPhone } from 'react-icons/md';
 
 export default function ProfilePage() {
   const router = useRouter();
@@ -160,9 +161,7 @@ export default function ProfilePage() {
                   : 'text-gray-600 hover:bg-gray-50'
               }`}
             >
-              <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                <path fillRule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clipRule="evenodd" />
-              </svg>
+              <MdAccountCircle className="w-5 h-5" />
               <span>Hesap</span>
             </button>
             <button
@@ -173,9 +172,7 @@ export default function ProfilePage() {
                   : 'text-gray-600 hover:bg-gray-50'
               }`}
             >
-              <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                <path d="M10 2a6 6 0 00-6 6v3.586l-.707.707A1 1 0 004 14h12a1 1 0 00.707-1.707L16 11.586V8a6 6 0 00-6-6zM10 18a3 3 0 01-3-3h6a3 3 0 01-3 3z" />
-              </svg>
+              <MdNotifications className="w-5 h-5" />
               <span>Bildirimler</span>
             </button>
             <button
@@ -186,9 +183,7 @@ export default function ProfilePage() {
                   : 'text-gray-600 hover:bg-gray-50'
               }`}
             >
-              <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                <path fillRule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clipRule="evenodd" />
-              </svg>
+              <MdLock className="w-5 h-5" />
               <span>Şifre Değiştir</span>
             </button>
           </nav>
@@ -233,9 +228,9 @@ export default function ProfilePage() {
               {/* Basic Details Section */}
               <div className="mb-8">
                 <div className="flex items-center space-x-3 mb-6">
-                  <svg className="w-6 h-6 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
-                    <path fillRule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clipRule="evenodd" />
-                  </svg>
+                  <div className="w-10 h-10 text-[25px] leading-[1] flex items-center justify-center shrink-0 rounded-full shadow-[0_3px_14px_rgba(0,0,0,0.08)]">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" fill="currentColor" viewBox="0 0 256 256" font-size="var(--Icon-fontSize)"><path d="M230.92,212c-15.23-26.33-38.7-45.21-66.09-54.16a72,72,0,1,0-73.66,0C63.78,166.78,40.31,185.66,25.08,212a8,8,0,1,0,13.85,8c18.84-32.56,52.14-52,89.07-52s70.23,19.44,89.07,52a8,8,0,1,0,13.85-8ZM72,96a56,56,0,1,1,56,56A56.06,56.06,0,0,1,72,96Z"></path></svg>
+                  </div>
                   <h2 className="text-lg font-semibold text-gray-900">Temel Bilgiler</h2>
                 </div>
 
