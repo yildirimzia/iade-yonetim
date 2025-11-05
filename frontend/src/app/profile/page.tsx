@@ -138,174 +138,282 @@ export default function ProfilePage() {
     }
   };
 
+  const [activeTab, setActiveTab] = useState<'account' | 'notifications' | 'password'>('account');
+
   if (loading) return <div className="p-4">Yükleniyor...</div>;
   if (!user) return <div className="p-4">Kullanıcı bulunamadı.</div>;
 
   return (
-    <div className="container mx-auto p-4">
-      <div className="max-w-3xl mx-auto">
-        <h1 className="text-2xl font-bold mb-6">Profil Bilgileri</h1>
+    <div className="flex gap-6">
+      {/* Left Sidebar Menu */}
+      <div className="w-80 flex-shrink-0">
+        <div className="bg-white rounded-lg shadow-sm border border-gray-200">
+          <div className="p-4 border-b border-gray-200">
+            <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Kişisel</h3>
+          </div>
+          <nav className="p-2">
+            <button
+              onClick={() => setActiveTab('account')}
+              className={`w-full flex items-center space-x-3 px-4 py-3 rounded-lg text-sm font-medium transition-colors ${
+                activeTab === 'account'
+                  ? 'bg-gray-100 text-gray-900'
+                  : 'text-gray-600 hover:bg-gray-50'
+              }`}
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+              </svg>
+              <span>Hesap</span>
+            </button>
+            <button
+              onClick={() => setActiveTab('notifications')}
+              className={`w-full flex items-center space-x-3 px-4 py-3 rounded-lg text-sm font-medium transition-colors ${
+                activeTab === 'notifications'
+                  ? 'bg-gray-100 text-gray-900'
+                  : 'text-gray-600 hover:bg-gray-50'
+              }`}
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+              </svg>
+              <span>Bildirimler</span>
+            </button>
+            <button
+              onClick={() => setActiveTab('password')}
+              className={`w-full flex items-center space-x-3 px-4 py-3 rounded-lg text-sm font-medium transition-colors ${
+                activeTab === 'password'
+                  ? 'bg-gray-100 text-gray-900'
+                  : 'text-gray-600 hover:bg-gray-50'
+              }`}
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+              </svg>
+              <span>Şifre Değiştir</span>
+            </button>
+          </nav>
+          
+          {/* User Info in Sidebar */}
+          <div className="p-4 border-t border-gray-200">
+            <div className="flex items-center space-x-3">
+              <div className="w-10 h-10 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-full flex items-center justify-center text-white font-semibold shadow-lg">
+                {user.name?.charAt(0).toUpperCase() || 'U'}
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-medium text-gray-900 truncate">{user.name}</p>
+                <p className="text-xs text-gray-500 truncate">{user.email}</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
 
+      {/* Main Content Area */}
+      <div className="flex-1">
         {error && (
-          <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
+          <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg mb-6">
             {error}
           </div>
         )}
 
         {success && (
-          <div className="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded mb-4">
+          <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-lg mb-6">
             {success}
           </div>
         )}
 
-        <div className="bg-white shadow rounded-lg mb-6">
-          <div className="p-6">
-            <div className="flex justify-between items-center mb-6">
-              <h2 className="text-xl font-semibold">Hesap Bilgileri</h2>
-              <button
-                onClick={() => setIsEditing(!isEditing)}
-                className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded"
-              >
-                {isEditing ? 'İptal' : 'Düzenle'}
-              </button>
+        {/* Account Tab */}
+        {activeTab === 'account' && (
+          <div className="bg-white rounded-lg shadow-sm border border-gray-200">
+            <div className="p-6 border-b border-gray-200">
+              <h1 className="text-2xl font-bold text-gray-900">Hesap</h1>
             </div>
+            
+            <div className="p-6">
+              {/* Basic Details Section */}
+              <div className="mb-8">
+                <div className="flex items-center space-x-3 mb-6">
+                  <svg className="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                  </svg>
+                  <h2 className="text-lg font-semibold text-gray-900">Temel Bilgiler</h2>
+                </div>
 
-            {isEditing ? (
-              <form onSubmit={handleProfileUpdate}>
-                <div className="space-y-4">
+                <form onSubmit={handleProfileUpdate} className="space-y-6">
+                  {/* Profile Picture */}
+                  <div className="flex items-start space-x-6">
+                    <div className="relative">
+                      <div className="w-24 h-24 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-full flex items-center justify-center text-white text-3xl font-semibold shadow-lg">
+                        {user.name?.charAt(0).toUpperCase() || 'U'}
+                      </div>
+                    </div>
+                    <div className="flex-1 pt-2">
+                      <button
+                        type="button"
+                        className="text-sm text-red-600 hover:text-red-700 font-medium"
+                      >
+                        Kaldır
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Full Name */}
                   <div>
-                    <label className="block text-sm font-medium text-gray-700">İsim</label>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Ad Soyad</label>
                     <input
                       type="text"
                       name="name"
                       value={formData.name}
                       onChange={handleInputChange}
                       required
-                      className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
                     />
                   </div>
 
+                  {/* Email Address */}
                   <div>
-                    <label className="block text-sm font-medium text-gray-700">Telefon</label>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">E-posta Adresi</label>
                     <input
-                      type="text"
-                      name="phone"
-                      value={formData.phone}
-                      onChange={handleInputChange}
-                      className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                      type="email"
+                      value={user.email}
+                      disabled
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-gray-50 text-gray-500"
                     />
+                    <p className="mt-2 text-sm text-gray-500">
+                      E-postanızı değiştirmek için lütfen <span className="text-indigo-600 font-medium cursor-pointer">bizimle iletişime geçin</span>
+                    </p>
                   </div>
 
+                  {/* Phone Number */}
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">Ülke Kodu</label>
+                      <select className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                        <option>🇹🇷 Türkiye (+90)</option>
+                        <option>🇺🇸 ABD (+1)</option>
+                        <option>🇬🇧 İngiltere (+44)</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">Telefon Numarası</label>
+                      <input
+                        type="text"
+                        name="phone"
+                        value={formData.phone}
+                        onChange={handleInputChange}
+                        placeholder="555 123 4567"
+                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Title */}
                   <div>
-                    <label className="block text-sm font-medium text-gray-700">Firma</label>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Ünvan</label>
                     <input
                       type="text"
                       name="company"
                       value={formData.company}
                       onChange={handleInputChange}
-                      className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                      placeholder="örn: Yazılım Geliştirici"
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
                     />
                   </div>
 
-                  <div className="flex justify-end">
+                  {/* Biography */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Biyografi (opsiyonel)</label>
+                    <textarea
+                      rows={4}
+                      placeholder="Kendiniz hakkında birşeyler yazın..."
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent resize-none"
+                    />
+                  </div>
+
+                  {/* Save Button */}
+                  <div className="flex justify-end pt-4">
                     <button
                       type="submit"
-                      className="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded"
+                      className="px-6 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-medium rounded-lg transition-colors"
                     >
-                      Kaydet
+                      Değişiklikleri Kaydet
                     </button>
                   </div>
+                </form>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Notifications Tab */}
+        {activeTab === 'notifications' && (
+          <div className="bg-white rounded-lg shadow-sm border border-gray-200">
+            <div className="p-6 border-b border-gray-200">
+              <h1 className="text-2xl font-bold text-gray-900">Bildirimler</h1>
+            </div>
+            <div className="p-6">
+              <p className="text-gray-600">Bildirim ayarlarını buradan yönetebilirsiniz.</p>
+            </div>
+          </div>
+        )}
+
+        {/* Change Password Tab */}
+        {activeTab === 'password' && (
+          <div className="bg-white rounded-lg shadow-sm border border-gray-200">
+            <div className="p-6 border-b border-gray-200">
+              <h1 className="text-2xl font-bold text-gray-900">Şifre Değiştir</h1>
+            </div>
+            
+            <div className="p-6">
+              <form onSubmit={handlePasswordChange} className="space-y-6 max-w-xl">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Mevcut Şifre</label>
+                  <input
+                    type="password"
+                    name="currentPassword"
+                    value={formData.currentPassword}
+                    onChange={handleInputChange}
+                    required
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Yeni Şifre</label>
+                  <input
+                    type="password"
+                    name="newPassword"
+                    value={formData.newPassword}
+                    onChange={handleInputChange}
+                    required
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Yeni Şifre (Tekrar)</label>
+                  <input
+                    type="password"
+                    name="confirmPassword"
+                    value={formData.confirmPassword}
+                    onChange={handleInputChange}
+                    required
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                  />
+                </div>
+
+                <div className="flex justify-end pt-4">
+                  <button
+                    type="submit"
+                    className="px-6 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-medium rounded-lg transition-colors"
+                  >
+                    Şifreyi Güncelle
+                  </button>
                 </div>
               </form>
-            ) : (
-              <div className="space-y-4">
-                <div>
-                  <h3 className="text-sm font-medium text-gray-500">Email</h3>
-                  <p className="mt-1">{user.email}</p>
-                </div>
-                <div>
-                  <h3 className="text-sm font-medium text-gray-500">İsim</h3>
-                  <p className="mt-1">{user.name}</p>
-                </div>
-                <div>
-                  <h3 className="text-sm font-medium text-gray-500">Telefon</h3>
-                  <p className="mt-1">{user.phone || '-'}</p>
-                </div>
-                <div>
-                  <h3 className="text-sm font-medium text-gray-500">Firma</h3>
-                  <p className="mt-1">{user.company || '-'}</p>
-                </div>
-                <div>
-                  <h3 className="text-sm font-medium text-gray-500">Hesap Türü</h3>
-                  <p className="mt-1">
-                    <span className={`px-2 py-1 text-sm rounded-full ${
-                      user.role === 'admin' ? 'bg-red-100 text-red-800' : 'bg-green-100 text-green-800'
-                    }`}>
-                      {user.role === 'admin' ? 'Admin' : 'Satıcı'}
-                    </span>
-                  </p>
-                </div>
-                <div>
-                  <h3 className="text-sm font-medium text-gray-500">Kayıt Tarihi</h3>
-                  <p className="mt-1">{new Date(user.created_at!).toLocaleDateString('tr-TR')}</p>
-                </div>
-              </div>
-            )}
+            </div>
           </div>
-        </div>
-
-        <div className="bg-white shadow rounded-lg">
-          <div className="p-6">
-            <h2 className="text-xl font-semibold mb-6">Şifre Değiştir</h2>
-            
-            <form onSubmit={handlePasswordChange} className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700">Mevcut Şifre</label>
-                <input
-                  type="password"
-                  name="currentPassword"
-                  value={formData.currentPassword}
-                  onChange={handleInputChange}
-                  required
-                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700">Yeni Şifre</label>
-                <input
-                  type="password"
-                  name="newPassword"
-                  value={formData.newPassword}
-                  onChange={handleInputChange}
-                  required
-                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700">Yeni Şifre (Tekrar)</label>
-                <input
-                  type="password"
-                  name="confirmPassword"
-                  value={formData.confirmPassword}
-                  onChange={handleInputChange}
-                  required
-                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-                />
-              </div>
-
-              <div className="flex justify-end">
-                <button
-                  type="submit"
-                  className="bg-yellow-500 hover:bg-yellow-600 text-white px-4 py-2 rounded"
-                >
-                  Şifre Değiştir
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
+        )}
       </div>
     </div>
   );
