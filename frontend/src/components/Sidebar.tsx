@@ -19,6 +19,7 @@ export default function Sidebar() {
   const userIsAdmin = isAdmin();
   const { user } = getAuthData();
   const [isWorkspaceOpen, setIsWorkspaceOpen] = useState(false);
+  const [isProductsMenuOpen, setIsProductsMenuOpen] = useState(false);
 
   const dashboardNavigation: NavigationItem[] = [
     {
@@ -31,16 +32,7 @@ export default function Sidebar() {
       ),
       roles: ['admin', 'seller'],
     },
-    {
-      name: 'Ürünlerim',
-      href: '/products',
-      icon: (
-        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
-        </svg>
-      ),
-      roles: ['seller'],
-    },
+
     {
       name: 'İadeler',
       href: '/returns',
@@ -75,7 +67,7 @@ export default function Sidebar() {
 
   const generalNavigation: NavigationItem[] = [
     {
-      name: 'Kullanıcılar',
+      name: 'Müşteriler',
       href: '/dashboard/users',
       icon: (
         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -188,6 +180,66 @@ export default function Sidebar() {
                 </Link>
               );
             })}
+            
+            {/* Ürünler Menu - Only for Sellers */}
+            {!userIsAdmin && (
+              <div className="space-y-1">
+                <button
+                  onClick={() => setIsProductsMenuOpen(!isProductsMenuOpen)}
+                  className="w-full flex items-center justify-between px-3 py-2 text-sm font-medium rounded-lg transition-all text-gray-300 hover:bg-[#252840] hover:text-white"
+                >
+                  <div className="flex items-center">
+                    <svg className="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+                    </svg>
+                    Ürünler
+                  </div>
+                  <svg 
+                    className={`w-4 h-4 text-gray-400 transition-transform ${isProductsMenuOpen ? 'rotate-90' : ''}`}
+                    fill="none" 
+                    stroke="currentColor" 
+                    viewBox="0 0 24 24"
+                  >
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                  </svg>
+                </button>
+                
+                {isProductsMenuOpen && (
+                  <div className="ml-8 space-y-1 border-l-2 border-gray-700 pl-3">
+                    <Link
+                      href="/products"
+                      className={`block px-3 py-2 text-sm rounded-lg transition-all ${
+                        pathname === '/products'
+                          ? 'text-indigo-400 font-medium'
+                          : 'text-gray-400 hover:text-white hover:bg-[#252840]'
+                      }`}
+                    >
+                      Ürünleri listele
+                    </Link>
+                    <Link
+                      href="/products/create"
+                      className={`block px-3 py-2 text-sm rounded-lg transition-all ${
+                        pathname === '/products/create'
+                          ? 'text-indigo-400 font-medium'
+                          : 'text-gray-400 hover:text-white hover:bg-[#252840]'
+                      }`}
+                    >
+                      Ürün oluştur
+                    </Link>
+                    <Link
+                      href="/products/shipping"
+                      className={`block px-3 py-2 text-sm rounded-lg transition-all ${
+                        pathname === '/products/shipping'
+                          ? 'text-indigo-400 font-medium'
+                          : 'text-gray-400 hover:text-white hover:bg-[#252840]'
+                      }`}
+                    >
+                      Kargolama bilgileri
+                    </Link>
+                  </div>
+                )}
+              </div>
+            )}
           </div>
         </div>
 

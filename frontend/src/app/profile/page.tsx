@@ -141,8 +141,32 @@ export default function ProfilePage() {
 
   const [activeTab, setActiveTab] = useState<'account' | 'notifications' | 'password'>('account');
 
-  if (loading) return <div className="p-4">Yükleniyor...</div>;
-  if (!user) return <div className="p-4">Kullanıcı bulunamadı.</div>;
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-center">
+          <div className="relative inline-flex">
+            <div className="w-16 h-16 border-4 border-indigo-200 rounded-full"></div>
+            <div className="w-16 h-16 border-4 border-indigo-600 rounded-full animate-spin border-t-transparent absolute top-0 left-0"></div>
+          </div>
+          <p className="mt-4 text-gray-600 font-medium">Yükleniyor...</p>
+        </div>
+      </div>
+    );
+  }
+  
+  if (!user) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-center">
+          <svg className="w-16 h-16 text-gray-400 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+          <p className="text-gray-600 font-medium">Kullanıcı bulunamadı.</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="flex gap-6">

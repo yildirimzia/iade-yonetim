@@ -41,7 +41,7 @@ const getAllUsers = async (req, res) => {
     console.error('Get all users error:', error);
     res.status(500).json({
       success: false,
-      message: 'Kullanıcılar getirilirken hata oluştu.'
+      message: 'Müşteriler getirilirken hata oluştu.'
     });
   }
 };

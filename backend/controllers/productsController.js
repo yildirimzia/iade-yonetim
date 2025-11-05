@@ -163,7 +163,20 @@ const createProduct = async (req, res) => {
 const updateProduct = async (req, res) => {
   try {
     const { id } = req.params;
-    const { product_name, sku, barcode, category, original_price, notes } = req.body;
+    const { 
+      product_name, 
+      sku, 
+      barcode, 
+      category, 
+      original_price, 
+      notes,
+      shipping_name,
+      shipping_phone,
+      shipping_address,
+      shipping_city,
+      shipping_postal_code,
+      shipping_country
+    } = req.body;
 
     // Check ownership (sellers can only update their own products)
     if (req.user.role !== 'admin') {
@@ -187,10 +200,30 @@ const updateProduct = async (req, res) => {
            barcode = COALESCE($3, barcode),
            category = COALESCE($4, category),
            original_price = COALESCE($5, original_price),
-           notes = COALESCE($6, notes)
-       WHERE id = $7
+           notes = COALESCE($6, notes),
+           shipping_name = COALESCE($7, shipping_name),
+           shipping_phone = COALESCE($8, shipping_phone),
+           shipping_address = COALESCE($9, shipping_address),
+           shipping_city = COALESCE($10, shipping_city),
+           shipping_postal_code = COALESCE($11, shipping_postal_code),
+           shipping_country = COALESCE($12, shipping_country)
+       WHERE id = $13
        RETURNING *`,
-      [product_name, sku, barcode, category, original_price, notes, id]
+      [
+        product_name, 
+        sku, 
+        barcode, 
+        category, 
+        original_price, 
+        notes,
+        shipping_name,
+        shipping_phone,
+        shipping_address,
+        shipping_city,
+        shipping_postal_code,
+        shipping_country,
+        id
+      ]
     );
 
     if (result.rows.length === 0) {

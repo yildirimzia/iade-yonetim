@@ -26,10 +26,17 @@ export interface Product {
   category: string;
   original_price?: number;
   notes?: string;
+  image_url?: string;
   created_at: string;
   seller_name?: string;
   company?: string;
   seller_email?: string;
+  shipping_name?: string;
+  shipping_phone?: string;
+  shipping_address?: string;
+  shipping_city?: string;
+  shipping_postal_code?: string;
+  shipping_country?: string;
 }
 
 export interface ProductCreateData {

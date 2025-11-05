@@ -97,7 +97,7 @@ Sistem ilk çalıştırıldığında otomatik admin hesabı oluşturulur:
 
 ## 📊 Veritabanı Şeması
 
-### Users (Kullanıcılar)
+### Users (Müşteriler)
 - id, email, password, name, role (admin/seller), phone, created_at
 
 ### Products (Ürünler)
