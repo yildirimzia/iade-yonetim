@@ -6,13 +6,17 @@ const {
   createProduct,
   updateProduct,
   deleteProduct,
-  getCategories
+  getCategories,
+  getStats
 } = require('../controllers/productsController');
 const { protect, sellerOrAdmin } = require('../middleware/auth');
 const pool = require('../config/database');
 
 // All routes require authentication
 router.use(protect);
+
+// Special route for stats (must be before /:id)
+router.get('/stats', getStats);
 
 // Special route for categories (must be before /:id)
 router.get('/categories', getCategories);

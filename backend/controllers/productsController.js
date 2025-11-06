@@ -316,11 +316,70 @@ const getCategories = async (req, res) => {
   }
 };
 
+// @desc    Get dashboard statistics
+// @route   GET /api/products/stats
+// @access  Private
+const getStats = async (req, res) => {
+  try {
+    let stats = {};
+
+    if (req.user.role === 'admin') {
+      // Admin: Tüm istatistikler
+      const totalProductsResult = await pool.query('SELECT COUNT(*) FROM products');
+      const readyToShipResult = await pool.query(
+        'SELECT COUNT(*) FROM products WHERE shipping_name IS NOT NULL AND shipping_address IS NOT NULL'
+      );
+      const totalUsersResult = await pool.query('SELECT COUNT(*) FROM users');
+      const totalSellersResult = await pool.query("SELECT COUNT(*) FROM users WHERE role = 'seller'");
+      
+      stats = {
+        totalProducts: parseInt(totalProductsResult.rows[0].count) || 0,
+        readyToShip: parseInt(readyToShipResult.rows[0].count) || 0,
+        totalUsers: parseInt(totalUsersResult.rows[0].count) || 0,
+        totalSellers: parseInt(totalSellersResult.rows[0].count) || 0,
+        pendingReturns: 0, // İade sistemi henüz yok, 0 olarak dönüyoruz
+        completedOrders: 0 // Sipariş sistemi henüz yok, 0 olarak dönüyoruz
+      };
+    } else {
+      // Seller: Sadece kendi istatistikleri
+      const totalProductsResult = await pool.query(
+        'SELECT COUNT(*) FROM products WHERE seller_id = $1',
+        [req.user.id]
+      );
+      const readyToShipResult = await pool.query(
+        'SELECT COUNT(*) FROM products WHERE seller_id = $1 AND shipping_name IS NOT NULL AND shipping_address IS NOT NULL',
+        [req.user.id]
+      );
+      
+      stats = {
+        totalProducts: parseInt(totalProductsResult.rows[0].count) || 0,
+        readyToShip: parseInt(readyToShipResult.rows[0].count) || 0,
+        totalUsers: 0,
+        totalSellers: 0,
+        pendingReturns: 0, // İade sistemi henüz yok
+        completedOrders: 0 // Sipariş sistemi henüz yok
+      };
+    }
+
+    res.json({
+      success: true,
+      data: stats
+    });
+  } catch (error) {
+    console.error('Get stats error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'İstatistikler getirilirken hata oluştu.'
+    });
+  }
+};
+
 module.exports = {
   getProducts,
   getProduct,
   createProduct,
   updateProduct,
   deleteProduct,
-  getCategories
+  getCategories,
+  getStats
 };
