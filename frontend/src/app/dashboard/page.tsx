@@ -332,9 +332,6 @@ export default function DashboardPage() {
                       </div>
                       <div className="flex items-center space-x-4">
                         <div className="text-right">
-                          <p className="text-sm font-medium text-gray-900">
-                            {product.original_price ? `${Number(product.original_price).toFixed(2)} ₺` : '-'}
-                          </p>
                           <p className="text-xs text-gray-500">
                             {new Date(product.created_at).toLocaleDateString('tr-TR')}
                           </p>

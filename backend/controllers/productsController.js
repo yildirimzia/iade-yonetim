@@ -193,8 +193,15 @@ const updateProduct = async (req, res) => {
       }
     }
 
-    const result = await pool.query(
-      `UPDATE products
+    // Check if shipping info is being updated
+    const shouldUpdateShippingTimestamp = shipping_name || shipping_phone || shipping_address || 
+                                         shipping_city || shipping_postal_code || shipping_country;
+
+    let query, params;
+
+    if (shouldUpdateShippingTimestamp) {
+      // Update with shipping timestamp
+      query = `UPDATE products
        SET product_name = COALESCE($1, product_name),
            sku = COALESCE($2, sku),
            barcode = COALESCE($3, barcode),
@@ -206,10 +213,11 @@ const updateProduct = async (req, res) => {
            shipping_address = COALESCE($9, shipping_address),
            shipping_city = COALESCE($10, shipping_city),
            shipping_postal_code = COALESCE($11, shipping_postal_code),
-           shipping_country = COALESCE($12, shipping_country)
+           shipping_country = COALESCE($12, shipping_country),
+           shipping_updated_at = NOW()
        WHERE id = $13
-       RETURNING *`,
-      [
+       RETURNING *`;
+      params = [
         product_name, 
         sku, 
         barcode, 
@@ -223,8 +231,30 @@ const updateProduct = async (req, res) => {
         shipping_postal_code,
         shipping_country,
         id
-      ]
-    );
+      ];
+    } else {
+      // Update without shipping timestamp
+      query = `UPDATE products
+       SET product_name = COALESCE($1, product_name),
+           sku = COALESCE($2, sku),
+           barcode = COALESCE($3, barcode),
+           category = COALESCE($4, category),
+           original_price = COALESCE($5, original_price),
+           notes = COALESCE($6, notes)
+       WHERE id = $7
+       RETURNING *`;
+      params = [
+        product_name, 
+        sku, 
+        barcode, 
+        category, 
+        original_price, 
+        notes,
+        id
+      ];
+    }
+
+    const result = await pool.query(query, params);
 
     if (result.rows.length === 0) {
       return res.status(404).json({
@@ -374,6 +404,60 @@ const getStats = async (req, res) => {
   }
 };
 
+// @desc    Update product status (Admin only)
+// @route   PATCH /api/products/:id/status
+// @access  Private (Admin)
+const updateProductStatus = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { status } = req.body;
+
+    // Only admin can update status
+    if (req.user.role !== 'admin') {
+      return res.status(403).json({
+        success: false,
+        message: 'Bu işlem için yetkiniz yok.'
+      });
+    }
+
+    // Validate status
+    const validStatuses = ['pending', 'ready_to_ship', 'shipped', 'delivered'];
+    if (!validStatuses.includes(status)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Geçersiz durum değeri.'
+      });
+    }
+
+    const result = await pool.query(
+      `UPDATE products
+       SET status = $1
+       WHERE id = $2
+       RETURNING *`,
+      [status, id]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: 'Ürün bulunamadı.'
+      });
+    }
+
+    res.json({
+      success: true,
+      message: 'Ürün durumu güncellendi.',
+      data: result.rows[0]
+    });
+  } catch (error) {
+    console.error('Update product status error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Ürün durumu güncellenirken hata oluştu.'
+    });
+  }
+};
+
 module.exports = {
   getProducts,
   getProduct,
@@ -381,5 +465,6 @@ module.exports = {
   updateProduct,
   deleteProduct,
   getCategories,
-  getStats
+  getStats,
+  updateProductStatus
 };

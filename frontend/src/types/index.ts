@@ -17,6 +17,8 @@ export interface AuthData {
 }
 
 // Product Types
+export type ProductStatus = 'pending' | 'ready_to_ship' | 'shipped' | 'delivered';
+
 export interface Product {
   id: number;
   seller_id: number;
@@ -37,6 +39,8 @@ export interface Product {
   shipping_city?: string;
   shipping_postal_code?: string;
   shipping_country?: string;
+  shipping_updated_at?: string;
+  status?: ProductStatus;
 }
 
 export interface ProductCreateData {

@@ -3,7 +3,43 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import type { Product } from '@/types';
+import type { Product, ProductStatus } from '@/types';
+
+// Helper function to get status display info
+const getStatusInfo = (status?: ProductStatus) => {
+  switch (status) {
+    case 'pending':
+      return {
+        label: 'Beklemede',
+        color: 'bg-gray-100 text-gray-800',
+        dotColor: 'bg-gray-500'
+      };
+    case 'ready_to_ship':
+      return {
+        label: 'Kargoya Hazır',
+        color: 'bg-blue-100 text-blue-800',
+        dotColor: 'bg-blue-500'
+      };
+    case 'shipped':
+      return {
+        label: 'Kargoda',
+        color: 'bg-yellow-100 text-yellow-800',
+        dotColor: 'bg-yellow-500'
+      };
+    case 'delivered':
+      return {
+        label: 'Teslim Edildi',
+        color: 'bg-green-100 text-green-800',
+        dotColor: 'bg-green-500'
+      };
+    default:
+      return {
+        label: 'Beklemede',
+        color: 'bg-gray-100 text-gray-800',
+        dotColor: 'bg-gray-500'
+      };
+  }
+};
 
 export default function ProductsPage() {
   const router = useRouter();
@@ -195,13 +231,10 @@ export default function ProductsPage() {
                 Stoklama
               </th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Fiyat
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                 Durum
               </th>
               <th className="px-6 py-3 text-right">
-                <svg className="w-5 h-5 text-gray-400 ml-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="w-5 h-5 text-gray-400 " fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
                 </svg>
@@ -252,21 +285,16 @@ export default function ProductsPage() {
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                     {product.barcode || '0'}
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                    {product.original_price ? `${Number(product.original_price).toFixed(2)} ABD doları` : '-'}
-                  </td>
                   <td className="px-6 py-4 whitespace-nowrap">
-                    {product.category === 'Taslak' ? (
-                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
-                        <span className="w-1.5 h-1.5 rounded-full bg-gray-500 mr-1.5"></span>
-                        Taslak
-                      </span>
-                    ) : (
-                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                        <span className="w-1.5 h-1.5 rounded-full bg-green-500 mr-1.5"></span>
-                        Yayımlandı
-                      </span>
-                    )}
+                    {(() => {
+                      const statusInfo = getStatusInfo(product.status);
+                      return (
+                        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${statusInfo.color}`}>
+                          <span className={`w-1.5 h-1.5 rounded-full ${statusInfo.dotColor} mr-1.5`}></span>
+                          {statusInfo.label}
+                        </span>
+                      );
+                    })()}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-right">
                     <Link

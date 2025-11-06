@@ -39,6 +39,25 @@ export default function ShippingPage() {
       
       if (data.success) {
         setProducts(data.data);
+        // İlk ürünü otomatik seç
+        if (data.data.length > 0) {
+          const firstProduct = data.data[0];
+          setSelectedProduct(firstProduct);
+          
+          // Eğer ürünün kargo bilgileri varsa düzenleme modunu kapat
+          const hasShippingInfo = firstProduct.shipping_name && firstProduct.shipping_address;
+          setIsEditing(!hasShippingInfo);
+          
+          // Ürünün mevcut kargo bilgilerini doldur
+          setShippingData({
+            shipping_name: firstProduct.shipping_name || '',
+            shipping_phone: firstProduct.shipping_phone || '',
+            shipping_address: firstProduct.shipping_address || '',
+            shipping_city: firstProduct.shipping_city || '',
+            shipping_postal_code: firstProduct.shipping_postal_code || '',
+            shipping_country: firstProduct.shipping_country || 'Türkiye',
+          });
+        }
       } else {
         setError(data.message);
       }

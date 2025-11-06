@@ -7,9 +7,10 @@ const {
   updateProduct,
   deleteProduct,
   getCategories,
-  getStats
+  getStats,
+  updateProductStatus
 } = require('../controllers/productsController');
-const { protect, sellerOrAdmin } = require('../middleware/auth');
+const { protect, sellerOrAdmin, adminOnly } = require('../middleware/auth');
 const pool = require('../config/database');
 
 // All routes require authentication
@@ -53,5 +54,8 @@ router.route('/:id')
   .get(getProduct)
   .put(sellerOrAdmin, updateProduct)
   .delete(sellerOrAdmin, deleteProduct);
+
+// Admin only: Update product status
+router.patch('/:id/status', updateProductStatus);
 
 module.exports = router;
