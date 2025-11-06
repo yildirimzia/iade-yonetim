@@ -126,7 +126,7 @@ const getProduct = async (req, res) => {
 // @access  Private (Seller/Admin)
 const createProduct = async (req, res) => {
   try {
-    const { product_name, sku, barcode, category, original_price, notes } = req.body;
+    const { product_name, sku, barcode, category, original_price, notes, user_id } = req.body;
 
     // Validation
     if (!product_name || !category) {
@@ -136,11 +136,14 @@ const createProduct = async (req, res) => {
       });
     }
 
+    // Admin can assign to specific user, seller can only create for themselves
+    const sellerId = req.user.role === 'admin' && user_id ? user_id : req.user.id;
+
     const result = await pool.query(
       `INSERT INTO products (seller_id, product_name, sku, barcode, category, original_price, notes)
        VALUES ($1, $2, $3, $4, $5, $6, $7)
        RETURNING *`,
-      [req.user.id, product_name, sku || null, barcode || null, category, original_price || null, notes || null]
+      [sellerId, product_name, sku || null, barcode || null, category, original_price || null, notes || null]
     );
 
     res.status(201).json({
