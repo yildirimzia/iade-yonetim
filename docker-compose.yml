@@ -4,19 +4,18 @@ services:
   # PostgreSQL Database
   postgres:
     image: postgres:15-alpine
-    container_name: iade-postgres
+    container_name: iade-postgres-prod
+    restart: always
     environment:
-      POSTGRES_DB: iade_yonetim
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
-    ports:
-      - "5432:5432"
+      POSTGRES_DB: ${DB_NAME:-iade_yonetim}
+      POSTGRES_USER: ${DB_USER:-postgres}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
     volumes:
       - postgres_data:/var/lib/postgresql/data
     networks:
       - iade-network
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-postgres}"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -24,13 +23,14 @@ services:
   # MinIO Object Storage
   minio:
     image: minio/minio:latest
-    container_name: iade-minio
+    container_name: iade-minio-prod
+    restart: always
     environment:
-      MINIO_ROOT_USER: minioadmin
-      MINIO_ROOT_PASSWORD: minioadmin123
+      MINIO_ROOT_USER: ${MINIO_ACCESS_KEY}
+      MINIO_ROOT_PASSWORD: ${MINIO_SECRET_KEY}
     ports:
-      - "9000:9000"  # API
-      - "9001:9001"  # Console (Web UI)
+      - "${MINIO_PORT:-9000}:9000"
+      - "${MINIO_CONSOLE_PORT:-9001}:9001"
     volumes:
       - minio_data:/data
     command: server /data --console-address ":9001"
@@ -44,32 +44,39 @@ services:
 
   # Backend API
   backend:
-    build: ./backend
-    container_name: iade-backend
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: iade-backend-prod
+    restart: always
     environment:
-      NODE_ENV: development
-      PORT: 5000
+      NODE_ENV: production
+      PORT: ${BACKEND_PORT:-5000}
+      
+      # Database
       DB_HOST: postgres
       DB_PORT: 5432
-      DB_NAME: iade_yonetim
-      DB_USER: postgres
-      DB_PASSWORD: postgres
-      JWT_SECRET: your-super-secret-jwt-key-change-in-production
+      DB_NAME: ${DB_NAME:-iade_yonetim}
+      DB_USER: ${DB_USER:-postgres}
+      DB_PASSWORD: ${DB_PASSWORD}
+      
+      # JWT
+      JWT_SECRET: ${JWT_SECRET}
+      
       # MinIO Configuration
       MINIO_ENDPOINT: minio
       MINIO_PORT: 9000
       MINIO_USE_SSL: false
-      MINIO_ACCESS_KEY: minioadmin
-      MINIO_SECRET_KEY: minioadmin123
-      MINIO_BUCKET: iade-yonetim
-      # Email (from your .env)
+      MINIO_ACCESS_KEY: ${MINIO_ACCESS_KEY}
+      MINIO_SECRET_KEY: ${MINIO_SECRET_KEY}
+      MINIO_BUCKET: ${MINIO_BUCKET:-iade-yonetim}
+      MINIO_PUBLIC_URL: ${MINIO_PUBLIC_URL}
+      
+      # Email
       EMAIL_USER: ${EMAIL_USER}
       EMAIL_PASSWORD: ${EMAIL_PASSWORD}
     ports:
-      - "5000:5000"
-    volumes:
-      - ./backend:/app
-      - /app/node_modules
+      - "${BACKEND_PORT:-5000}:5000"
     depends_on:
       postgres:
         condition: service_healthy
@@ -77,25 +84,25 @@ services:
         condition: service_healthy
     networks:
       - iade-network
-    command: npm run dev
 
-  # Frontend (Next.js)
+  # Frontend Next.js
   frontend:
-    build: ./frontend
-    container_name: iade-frontend
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      args:
+        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL}
+    container_name: iade-frontend-prod
+    restart: always
     environment:
-      NEXT_PUBLIC_API_URL: http://localhost:5000/api
+      NODE_ENV: production
+      NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL}
     ports:
-      - "3000:3000"
-    volumes:
-      - ./frontend:/app
-      - /app/node_modules
-      - /app/.next
+      - "${FRONTEND_PORT:-3000}:3000"
     depends_on:
       - backend
     networks:
       - iade-network
-    command: npm run dev
 
 networks:
   iade-network:
@@ -103,4 +110,6 @@ networks:
 
 volumes:
   postgres_data:
+    driver: local
   minio_data:
+    driver: local
