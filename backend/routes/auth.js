@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const {
+  checkEmail,
   register,
   login,
   getProfile,
@@ -10,6 +11,7 @@ const {
 const { protect } = require('../middleware/auth');
 
 // Public routes
+router.post('/check-email', checkEmail);
 router.post('/register', register);
 router.post('/login', login);
 

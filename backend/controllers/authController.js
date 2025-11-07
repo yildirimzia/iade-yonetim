@@ -18,6 +18,38 @@ const generateToken = (user) => {
   );
 };
 
+// @desc    Check if email exists
+// @route   POST /api/auth/check-email
+// @access  Public
+const checkEmail = async (req, res) => {
+  try {
+    const { email } = req.body;
+
+    if (!email) {
+      return res.status(400).json({
+        success: false,
+        message: 'Email gereklidir.'
+      });
+    }
+
+    const result = await pool.query(
+      'SELECT id FROM users WHERE email = $1',
+      [email]
+    );
+
+    res.json({
+      success: true,
+      exists: result.rows.length > 0
+    });
+  } catch (error) {
+    console.error('Check email error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Email kontrolü sırasında bir hata oluştu.'
+    });
+  }
+};
+
 // @desc    Register new user (seller)
 // @route   POST /api/auth/register
 // @access  Public
@@ -272,6 +304,7 @@ const changePassword = async (req, res) => {
 };
 
 module.exports = {
+  checkEmail,
   register,
   login,
   getProfile,

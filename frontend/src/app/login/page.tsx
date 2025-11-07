@@ -48,13 +48,13 @@ export default function LoginPage() {
                 <path d="M10.707 2.293a1 1 0 00-1.414 0l-7 7a1 1 0 001.414 1.414L4 10.414V17a1 1 0 001 1h2a1 1 0 001-1v-2a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 001 1h2a1 1 0 001-1v-6.586l.293.293a1 1 0 001.414-1.414l-7-7z" />
               </svg>
             </div>
-            <span className="text-2xl font-bold text-white">DeviasKit</span>
+            <span className="text-2xl font-bold text-white">İade Yönetim</span>
           </div>
           
           <div className="text-white">
-            <h1 className="text-4xl font-bold mb-6">Welcome to Devias Kit PRO</h1>
+            <h1 className="text-4xl font-bold mb-6">İade Yönetim Sistemine Hoş Geldiniz</h1>
             <p className="text-lg text-indigo-100 mb-8">
-              A professional template that comes with ready-to-use MUI components developed with one common goal in mind, help you build faster & beautiful applications.
+              Profesyonel bir platform ile iade, envanter ve kargo süreçlerinizi kolayca yönetin. Hızlı, güvenli ve kullanıcı dostu arayüz ile işlerinizi daha verimli hale getirin.
             </p>
           </div>
         </div>
@@ -80,15 +80,15 @@ export default function LoginPage() {
                 <path d="M10.707 2.293a1 1 0 00-1.414 0l-7 7a1 1 0 001.414 1.414L4 10.414V17a1 1 0 001 1h2a1 1 0 001-1v-2a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 001 1h2a1 1 0 001-1v-6.586l.293.293a1 1 0 001.414-1.414l-7-7z" />
               </svg>
             </div>
-            <span className="text-2xl font-bold text-gray-900">DeviasKit</span>
+            <span className="text-2xl font-bold text-gray-900">İade Yönetim</span>
           </div>
 
           <div className="mb-8">
-            <h2 className="text-3xl font-bold text-gray-900 mb-2">Sign in</h2>
+            <h2 className="text-3xl font-bold text-gray-900 mb-2">Giriş Yap</h2>
             <p className="text-gray-600">
-              Don't have an account?{' '}
+              Hesabınız yok mu?{' '}
               <Link href="/register" className="text-indigo-600 hover:text-indigo-700 font-medium">
-                Sign up
+                Kayıt ol
               </Link>
             </p>
           </div>
@@ -100,14 +100,14 @@ export default function LoginPage() {
               className="w-full flex items-center justify-center space-x-3 px-4 py-3 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
             >
               <FaGoogle className="w-5 h-5 text-red-500" />
-              <span className="text-gray-700 font-medium">Continue with Google</span>
+              <span className="text-gray-700 font-medium">Google ile devam et</span>
             </button>
             <button
               type="button"
               className="w-full flex items-center justify-center space-x-3 px-4 py-3 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
             >
               <FaDiscord className="w-5 h-5 text-indigo-500" />
-              <span className="text-gray-700 font-medium">Continue with Discord</span>
+              <span className="text-gray-700 font-medium">Discord ile devam et</span>
             </button>
           </div>
 
@@ -117,7 +117,7 @@ export default function LoginPage() {
               <div className="w-full border-t border-gray-300"></div>
             </div>
             <div className="relative flex justify-center text-sm">
-              <span className="px-4 bg-white text-gray-500">or</span>
+              <span className="px-4 bg-white text-gray-500">veya</span>
             </div>
           </div>
 
@@ -131,7 +131,7 @@ export default function LoginPage() {
 
             <div>
               <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
-                Email address
+                E-posta adresi
               </label>
               <input
                 id="email"
@@ -140,7 +140,7 @@ export default function LoginPage() {
                 autoComplete="email"
                 required
                 className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-                placeholder="sofia@devias.io"
+                placeholder="ornek@email.com"
                 value={formData.email}
                 onChange={handleChange}
               />
@@ -148,7 +148,7 @@ export default function LoginPage() {
 
             <div>
               <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-2">
-                Password
+                Şifre
               </label>
               <div className="relative">
                 <input
@@ -177,12 +177,12 @@ export default function LoginPage() {
               disabled={loading}
               className="w-full py-3 px-4 bg-indigo-600 hover:bg-indigo-700 text-white font-medium rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {loading ? 'Giriş yapılıyor...' : 'Sign in'}
+              {loading ? 'Giriş yapılıyor...' : 'Giriş Yap'}
             </button>
 
             <div className="text-center">
               <Link href="/forgot-password" className="text-sm text-indigo-600 hover:text-indigo-700 font-medium">
-                Forgot password?
+                Şifremi unuttum
               </Link>
             </div>
           </form>
@@ -194,7 +194,7 @@ export default function LoginPage() {
                 <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
               </svg>
               <div className="flex-1">
-                <p className="text-sm font-medium text-amber-800">Use sofia@devias.io with password Secret1</p>
+                <p className="text-sm font-medium text-amber-800">Demo için: admin@test.com şifresi: 123456</p>
               </div>
             </div>
           </div>

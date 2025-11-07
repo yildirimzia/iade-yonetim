@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, FormEvent, ChangeEvent } from 'react';
+import { useState, FormEvent, ChangeEvent, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useAppDispatch, useAppSelector } from '@/store';
@@ -26,6 +26,75 @@ export default function RegisterPage() {
   const [acceptedTerms, setAcceptedTerms] = useState<boolean>(false);
   const [showPassword, setShowPassword] = useState<boolean>(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState<boolean>(false);
+  
+  // Email validation states
+  const [emailError, setEmailError] = useState<string>('');
+  const [emailChecking, setEmailChecking] = useState<boolean>(false);
+  const [emailAvailable, setEmailAvailable] = useState<boolean | null>(null);
+  
+  // Password validation states
+  const [passwordError, setPasswordError] = useState<string>('');
+  const [confirmPasswordError, setConfirmPasswordError] = useState<string>('');
+
+  // Email format validation
+  const validateEmailFormat = (email: string): boolean => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email);
+  };
+
+  // Check if email exists in database
+  const checkEmailAvailability = async (email: string) => {
+    if (!email || !validateEmailFormat(email)) {
+      setEmailAvailable(null);
+      return;
+    }
+
+    setEmailChecking(true);
+    try {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/check-email`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email }),
+      });
+
+      const data = await response.json();
+      
+      if (data.exists) {
+        setEmailError('Bu e-posta adresi zaten kullanılıyor');
+        setEmailAvailable(false);
+      } else {
+        setEmailError('');
+        setEmailAvailable(true);
+      }
+    } catch (error) {
+      console.error('Email check error:', error);
+      setEmailError('');
+      setEmailAvailable(null);
+    } finally {
+      setEmailChecking(false);
+    }
+  };
+
+  // Debounce email check
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (formData.email) {
+        if (!validateEmailFormat(formData.email)) {
+          setEmailError('Geçerli bir e-posta adresi girin');
+          setEmailAvailable(null);
+        } else {
+          checkEmailAvailability(formData.email);
+        }
+      } else {
+        setEmailError('');
+        setEmailAvailable(null);
+      }
+    }, 500); // 500ms debounce
+
+    return () => clearTimeout(timer);
+  }, [formData.email]);
 
   const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
     setFormData({
@@ -37,12 +106,37 @@ export default function RegisterPage() {
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     
+    // Reset errors
+    setPasswordError('');
+    setConfirmPasswordError('');
+    
+    let hasError = false;
+    
     if (!acceptedTerms) {
-      return;
+      hasError = true;
+      alert('Lütfen kullanım şartlarını kabul edin');
+    }
+    
+    if (!validateEmailFormat(formData.email)) {
+      setEmailError('Geçerli bir e-posta adresi girin');
+      hasError = true;
+    }
+
+    if (emailAvailable === false) {
+      hasError = true;
+    }
+    
+    if (formData.password.length < 6) {
+      setPasswordError('Şifre en az 6 karakter olmalıdır');
+      hasError = true;
     }
     
     if (formData.password !== confirmPassword) {
-      alert('Şifreler eşleşmiyor');
+      setConfirmPasswordError('Şifreler eşleşmiyor');
+      hasError = true;
+    }
+    
+    if (hasError) {
       return;
     }
 
@@ -200,16 +294,55 @@ export default function RegisterPage() {
               <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
                 E-posta Adresi
               </label>
-              <input
-                id="email"
-                name="email"
-                type="email"
-                required
-                className="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors"
-                placeholder="email@example.com"
-                value={formData.email}
-                onChange={handleChange}
-              />
+              <div className="relative">
+                <input
+                  id="email"
+                  name="email"
+                  type="email"
+                  required
+                  className={`w-full px-3 py-2.5 border rounded-lg focus:outline-none focus:ring-2 transition-colors pr-10 ${
+                    emailError 
+                      ? 'border-red-300 focus:ring-red-500 focus:border-red-500' 
+                      : emailAvailable === true
+                      ? 'border-green-300 focus:ring-green-500 focus:border-green-500'
+                      : 'border-gray-300 focus:ring-indigo-500 focus:border-indigo-500'
+                  }`}
+                  placeholder="email@example.com"
+                  value={formData.email}
+                  onChange={handleChange}
+                />
+                {/* Loading spinner */}
+                {emailChecking && (
+                  <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                    <svg className="animate-spin h-5 w-5 text-indigo-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                  </div>
+                )}
+                {/* Success check */}
+                {!emailChecking && emailAvailable === true && (
+                  <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                    <svg className="h-5 w-5 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                    </svg>
+                  </div>
+                )}
+                {/* Error X */}
+                {!emailChecking && emailAvailable === false && (
+                  <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                    <svg className="h-5 w-5 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </div>
+                )}
+              </div>
+              {emailError && (
+                <p className="mt-1 text-sm text-red-600">{emailError}</p>
+              )}
+              {!emailError && emailAvailable === true && (
+                <p className="mt-1 text-sm text-green-600">✓ E-posta adresi kullanılabilir</p>
+              )}
             </div>
 
             <div>
@@ -222,11 +355,41 @@ export default function RegisterPage() {
                 type="password"
                 required
                 minLength={6}
-                className="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors"
+                className={`w-full px-3 py-2.5 border rounded-lg focus:outline-none focus:ring-2 transition-colors ${
+                  passwordError 
+                    ? 'border-red-300 focus:ring-red-500 focus:border-red-500' 
+                    : 'border-gray-300 focus:ring-indigo-500 focus:border-indigo-500'
+                }`}
                 placeholder="Minimum 6 karakter"
                 value={formData.password}
                 onChange={handleChange}
               />
+              {passwordError && (
+                <p className="mt-1 text-sm text-red-600">{passwordError}</p>
+              )}
+            </div>
+
+            <div>
+              <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700 mb-1">
+                Şifre Tekrarı
+              </label>
+              <input
+                id="confirmPassword"
+                name="confirmPassword"
+                type="password"
+                required
+                className={`w-full px-3 py-2.5 border rounded-lg focus:outline-none focus:ring-2 transition-colors ${
+                  confirmPasswordError 
+                    ? 'border-red-300 focus:ring-red-500 focus:border-red-500' 
+                    : 'border-gray-300 focus:ring-indigo-500 focus:border-indigo-500'
+                }`}
+                placeholder="Şifrenizi tekrar girin"
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+              />
+              {confirmPasswordError && (
+                <p className="mt-1 text-sm text-red-600">{confirmPasswordError}</p>
+              )}
             </div>
 
             <div className="flex items-start">
