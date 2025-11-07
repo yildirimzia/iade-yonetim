@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useAppDispatch, useAppSelector } from '@/store';
 import { register } from '@/store/slices/authSlice';
+import VerifyEmailModal from '@/components/VerifyEmailModal';
 import type { RegisterFormData } from '@/types';
 
 export default function RegisterPage() {
@@ -35,6 +36,10 @@ export default function RegisterPage() {
   // Password validation states
   const [passwordError, setPasswordError] = useState<string>('');
   const [confirmPasswordError, setConfirmPasswordError] = useState<string>('');
+  
+  // Email verification modal states
+  const [showVerifyModal, setShowVerifyModal] = useState<boolean>(false);
+  const [registeredEmail, setRegisteredEmail] = useState<string>('');
 
   // Email format validation
   const validateEmailFormat = (email: string): boolean => {
@@ -143,7 +148,64 @@ export default function RegisterPage() {
     const result = await dispatch(register(formData));
     
     if (register.fulfilled.match(result)) {
+      // Show verification modal instead of redirecting
+      setRegisteredEmail(formData.email);
+      setShowVerifyModal(true);
+    }
+  };
+
+  const handleVerifyEmail = async (code: string) => {
+    try {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/verify-email`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          email: registeredEmail,
+          code,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!data.success) {
+        throw new Error(data.message || 'Doğrulama başarısız');
+      }
+
+      // Save token to localStorage
+      if (data.data && data.data.token) {
+        localStorage.setItem('token', data.data.token);
+        localStorage.setItem('user', JSON.stringify(data.data.user));
+      }
+
+      // Success - close modal and redirect to dashboard
+      setShowVerifyModal(false);
       router.push('/dashboard');
+    } catch (error: any) {
+      throw new Error(error.message || 'Kod doğrulanamadı');
+    }
+  };
+
+  const handleResendCode = async () => {
+    try {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/resend-code`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          email: registeredEmail,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!data.success) {
+        throw new Error(data.message || 'Kod gönderilemedi');
+      }
+    } catch (error: any) {
+      throw new Error(error.message || 'Kod gönderilemedi');
     }
   };
 
@@ -419,6 +481,15 @@ export default function RegisterPage() {
           </form>
         </div>
       </div>
+
+      {/* Email Verification Modal */}
+      <VerifyEmailModal
+        isOpen={showVerifyModal}
+        email={registeredEmail}
+        onVerify={handleVerifyEmail}
+        onResend={handleResendCode}
+        onClose={() => setShowVerifyModal(false)}
+      />
     </div>
   );
 }

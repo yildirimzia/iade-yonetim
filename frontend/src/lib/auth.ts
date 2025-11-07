@@ -18,7 +18,18 @@ export const getAuthData = (): AuthDataReturn => {
   if (typeof window !== 'undefined') {
     const token = localStorage.getItem('token');
     const userStr = localStorage.getItem('user');
-    const user = userStr ? (JSON.parse(userStr) as User) : null;
+    
+    // Check if userStr is valid before parsing
+    let user = null;
+    if (userStr && userStr !== 'undefined' && userStr !== 'null') {
+      try {
+        user = JSON.parse(userStr) as User;
+      } catch (error) {
+        console.error('Failed to parse user data:', error);
+        localStorage.removeItem('user');
+      }
+    }
+    
     return { token, user };
   }
   return { token: null, user: null };

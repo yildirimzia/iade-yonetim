@@ -1,6 +1,7 @@
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const pool = require('../config/database');
+const { generateOTP, sendVerificationEmail } = require('../config/email');
 require('dotenv').config();
 
 // Generate JWT Token
@@ -57,6 +58,8 @@ const register = async (req, res) => {
   try {
     const { email, password, name, phone, company } = req.body;
 
+    console.log('📝 Register request:', { email, name, phone, company });
+
     // Validation
     if (!email || !password || !name) {
       return res.status(400).json({
@@ -66,6 +69,7 @@ const register = async (req, res) => {
     }
 
     // Check if user exists
+    console.log('🔍 Checking if user exists...');
     const userExists = await pool.query(
       'SELECT * FROM users WHERE email = $1',
       [email]
@@ -79,35 +83,61 @@ const register = async (req, res) => {
     }
 
     // Hash password
+    console.log('🔐 Hashing password...');
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(password, salt);
 
-    // Create user (default role: seller)
+    // Create user (default role: seller, email_verified: false)
+    console.log('👤 Creating user...');
     const result = await pool.query(
-      `INSERT INTO users (email, password, name, phone, company, role)
-       VALUES ($1, $2, $3, $4, $5, $6)
-       RETURNING id, email, name, phone, company, role, created_at`,
-      [email, hashedPassword, name, phone || null, company || null, 'seller']
+      `INSERT INTO users (email, password, name, phone, company, role, email_verified)
+       VALUES ($1, $2, $3, $4, $5, $6, $7)
+       RETURNING id, email, name, phone, company, role, email_verified, created_at`,
+      [email, hashedPassword, name, phone || null, company || null, 'seller', false]
     );
 
     const user = result.rows[0];
+    console.log('✅ User created:', user.id);
 
-    // Generate token
-    const token = generateToken(user);
+    // Generate OTP code
+    console.log('🔢 Generating OTP...');
+    const code = generateOTP();
+    const expiresAt = new Date(Date.now() + 15 * 60 * 1000); // 15 minutes
 
+    // IMPORTANT: Print code to console for development
+    console.log('');
+    console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+    console.log('📧 VERIFICATION CODE FOR:', email);
+    console.log('🔑 CODE:', code);
+    console.log('⏰ Expires in 15 minutes');
+    console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+    console.log('');
+
+    // Save verification code to database
+    console.log('💾 Saving verification code...');
+    await pool.query(
+      `INSERT INTO verification_codes (user_id, code, expires_at)
+       VALUES ($1, $2, $3)`,
+      [user.id, code, expiresAt]
+    );
+
+    // Send verification email (non-blocking, continue even if email fails)
+    try {
+      await sendVerificationEmail(email, code, name);
+      console.log('✅ Verification email sent to:', email);
+    } catch (emailError) {
+      console.error('⚠️ Email send failed (non-critical):', emailError.message);
+      console.log('💡 Use the code printed above to verify your email');
+    }
+
+    // DON'T generate token yet - user must verify email first
+    // Return success but no token
     res.status(201).json({
       success: true,
-      message: 'Kayıt başarılı!',
+      message: 'Kayıt başarılı! E-postanıza gönderilen doğrulama kodunu girin.',
       data: {
-        user: {
-          id: user.id,
-          email: user.email,
-          name: user.name,
-          phone: user.phone,
-          company: user.company,
-          role: user.role
-        },
-        token
+        email: user.email,
+        requiresVerification: true
       }
     });
   } catch (error) {
@@ -298,7 +328,161 @@ const changePassword = async (req, res) => {
     console.error('Change password error:', error);
     res.status(500).json({
       success: false,
-      message: 'Şifre değiştirilirken hata oluştu.'
+      message: 'Şifre değiştirme sırasında bir hata oluştu.'
+    });
+  }
+};
+
+// @desc    Verify email with OTP code
+// @route   POST /api/auth/verify-email
+// @access  Public
+const verifyEmail = async (req, res) => {
+  try {
+    const { email, code } = req.body;
+
+    if (!email || !code) {
+      return res.status(400).json({
+        success: false,
+        message: 'E-posta ve kod gereklidir.'
+      });
+    }
+
+    // Get user
+    const userResult = await pool.query(
+      'SELECT id FROM users WHERE email = $1',
+      [email]
+    );
+
+    if (userResult.rows.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: 'Kullanıcı bulunamadı.'
+      });
+    }
+
+    const userId = userResult.rows[0].id;
+
+    // Check verification code
+    const codeResult = await pool.query(
+      `SELECT * FROM verification_codes 
+       WHERE user_id = $1 AND code = $2 AND verified = false AND expires_at > NOW()
+       ORDER BY created_at DESC LIMIT 1`,
+      [userId, code]
+    );
+
+    if (codeResult.rows.length === 0) {
+      return res.status(400).json({
+        success: false,
+        message: 'Geçersiz veya süresi dolmuş kod.'
+      });
+    }
+
+    // Mark code as verified
+    await pool.query(
+      'UPDATE verification_codes SET verified = true WHERE id = $1',
+      [codeResult.rows[0].id]
+    );
+
+    // Update user email_verified status
+    await pool.query(
+      'UPDATE users SET email_verified = true WHERE id = $1',
+      [userId]
+    );
+
+    // Get full user details
+    const userDetails = await pool.query(
+      'SELECT id, email, name, phone, company, role, email_verified FROM users WHERE id = $1',
+      [userId]
+    );
+
+    const user = userDetails.rows[0];
+
+    // Generate token after successful verification
+    const token = generateToken(user);
+
+    res.json({
+      success: true,
+      message: 'E-posta başarıyla doğrulandı.',
+      data: {
+        user: {
+          id: user.id,
+          email: user.email,
+          name: user.name,
+          phone: user.phone,
+          company: user.company,
+          role: user.role
+        },
+        token
+      }
+    });
+  } catch (error) {
+    console.error('Verify email error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'E-posta doğrulama sırasında bir hata oluştu.'
+    });
+  }
+};
+
+// @desc    Resend verification code
+// @route   POST /api/auth/resend-code
+// @access  Public
+const resendCode = async (req, res) => {
+  try {
+    const { email } = req.body;
+
+    if (!email) {
+      return res.status(400).json({
+        success: false,
+        message: 'E-posta gereklidir.'
+      });
+    }
+
+    // Get user
+    const userResult = await pool.query(
+      'SELECT id, name, email_verified FROM users WHERE email = $1',
+      [email]
+    );
+
+    if (userResult.rows.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: 'Kullanıcı bulunamadı.'
+      });
+    }
+
+    const user = userResult.rows[0];
+
+    if (user.email_verified) {
+      return res.status(400).json({
+        success: false,
+        message: 'E-posta zaten doğrulanmış.'
+      });
+    }
+
+    // Generate new OTP code
+    const code = generateOTP();
+    const expiresAt = new Date(Date.now() + 15 * 60 * 1000); // 15 minutes
+
+    // Save new verification code
+    await pool.query(
+      `INSERT INTO verification_codes (user_id, code, expires_at)
+       VALUES ($1, $2, $3)`,
+      [user.id, code, expiresAt]
+    );
+
+    // Send verification email
+    await sendVerificationEmail(email, code, user.name);
+
+    res.json({
+      success: true,
+      message: 'Doğrulama kodu tekrar gönderildi.'
+    });
+  } catch (error) {
+    console.error('Resend code error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Kod gönderme sırasında bir hata oluştu.'
     });
   }
 };
@@ -309,5 +493,7 @@ module.exports = {
   login,
   getProfile,
   updateProfile,
-  changePassword
+  changePassword,
+  verifyEmail,
+  resendCode
 };

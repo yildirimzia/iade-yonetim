@@ -64,6 +64,7 @@ async function setupDatabase() {
         phone VARCHAR(50),
         company VARCHAR(255),
         role VARCHAR(20) NOT NULL DEFAULT 'seller' CHECK (role IN ('admin', 'seller')),
+        email_verified BOOLEAN DEFAULT FALSE,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       )
     `);
@@ -133,7 +134,20 @@ async function setupDatabase() {
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       )
     `);
-    console.log('✅ Shipments tablosu oluşturuldu\n');
+    console.log('✅ Shipments tablosu oluşturuldu');
+
+    // Email verification codes table
+    await dbClient.query(`
+      CREATE TABLE IF NOT EXISTS verification_codes (
+        id SERIAL PRIMARY KEY,
+        user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+        code VARCHAR(6) NOT NULL,
+        expires_at TIMESTAMP NOT NULL,
+        verified BOOLEAN DEFAULT FALSE,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      )
+    `);
+    console.log('✅ Verification_codes tablosu oluşturuldu\n');
 
     // Create indexes for better performance
     console.log('🔍 İndeksler oluşturuluyor...\n');
@@ -144,6 +158,7 @@ async function setupDatabase() {
     await dbClient.query('CREATE INDEX IF NOT EXISTS idx_returns_status ON returns(status)');
     await dbClient.query('CREATE INDEX IF NOT EXISTS idx_inventory_product ON inventory(product_id)');
     await dbClient.query('CREATE INDEX IF NOT EXISTS idx_shipments_return ON shipments(return_id)');
+    await dbClient.query('CREATE INDEX IF NOT EXISTS idx_verification_codes_user ON verification_codes(user_id)');
 
     console.log('✅ İndeksler oluşturuldu\n');
 
