@@ -165,6 +165,7 @@ export interface RegisterFormData {
   password: string;
   phone?: string;
   company?: string;
+  role?: string;
 }
 
 export interface ProfileUpdateData {

@@ -5,12 +5,18 @@ import { useRouter } from 'next/navigation';
 import { User } from '@/types';
 import { isAdmin } from '@/lib/auth';
 import Link from 'next/link';
+import { useAppDispatch, useAppSelector } from '@/store';
+import { fetchUsers } from '@/store/slices/usersSlice';
 
 export default function UsersPage() {
   const router = useRouter();
-  const [users, setUsers] = useState<User[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string>('');
+  const dispatch = useAppDispatch();
+  
+  // Redux state
+  const users = useAppSelector((state: any) => state.users.items as User[]) || [];
+  const loading = useAppSelector((state: any) => state.users.loading as boolean);
+  const error = useAppSelector((state: any) => state.users.error as string | null);
+  
   const [searchQuery, setSearchQuery] = useState('');
   const [filterTab, setFilterTab] = useState<'all' | 'admin' | 'seller'>('all');
   const [sortBy, setSortBy] = useState('newest');
@@ -23,30 +29,8 @@ export default function UsersPage() {
       return;
     }
 
-    fetchUsers();
-  }, [router]);
-
-  const fetchUsers = async () => {
-    try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/users`, {
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
-        }
-      });
-      
-      const data = await response.json();
-      
-      if (data.success) {
-        setUsers(data.data);
-      } else {
-        setError(data.message);
-      }
-    } catch (err) {
-      setError('Müşteriler yüklenirken bir hata oluştu.');
-    } finally {
-      setLoading(false);
-    }
-  };
+    dispatch(fetchUsers({ page: 1, limit: 100 }));
+  }, [router, dispatch]);
 
   if (loading) {
     return (

@@ -4,13 +4,20 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import type { User, Product } from '@/types';
+import { useAppDispatch, useAppSelector } from '@/store';
+import { fetchUserById } from '@/store/slices/usersSlice';
+import { createProduct } from '@/store/slices/productsSlice';
 
 export default function UserDetailPage({ params }: { params: { id: string } }) {
   const router = useRouter();
-  const [user, setUser] = useState<User | null>(null);
+  const dispatch = useAppDispatch();
+  
+  // Redux state
+  const selectedUser = useAppSelector((state: any) => state.users.selectedUser as User | null);
+  const loading = useAppSelector((state: any) => state.users.loading as boolean);
+  const error = useAppSelector((state: any) => state.users.error as string | null);
+  
   const [products, setProducts] = useState<Product[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string>('');
   const [activeTab, setActiveTab] = useState<'details' | 'products' | 'orders'>('details');
   const [showAddProductModal, setShowAddProductModal] = useState(false);
   const [newProduct, setNewProduct] = useState({
@@ -30,29 +37,9 @@ export default function UserDetailPage({ params }: { params: { id: string } }) {
   const [adding, setAdding] = useState(false);
 
   useEffect(() => {
-    fetchUserDetails();
+    dispatch(fetchUserById(params.id));
     fetchUserProducts();
-  }, [params.id]);
-
-  const fetchUserDetails = async () => {
-    try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/users/${params.id}`, {
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
-        }
-      });
-      
-      const data = await response.json();
-      
-      if (data.success) {
-        setUser(data.data);
-      } else {
-        setError(data.message);
-      }
-    } catch (err) {
-      setError('Kullanıcı bilgileri yüklenirken bir hata oluştu.');
-    }
-  };
+  }, [dispatch, params.id]);
 
   const fetchUserProducts = async () => {
     try {
@@ -69,8 +56,6 @@ export default function UserDetailPage({ params }: { params: { id: string } }) {
       }
     } catch (err) {
       console.error('Ürünler yüklenirken hata:', err);
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -96,28 +81,19 @@ export default function UserDetailPage({ params }: { params: { id: string } }) {
     setAdding(true);
 
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/products`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
-        },
-        body: JSON.stringify({
-          product_name: newProduct.product_name,
-          sku: newProduct.sku,
-          barcode: newProduct.barcode,
-          category: newProduct.category === 'Diğer' ? newProduct.custom_category : newProduct.category,
-          notes: newProduct.description,
-          user_id: params.id,
-          original_price: 0 // Varsayılan değer
-        })
-      });
+      const result = await dispatch(createProduct({
+        product_name: newProduct.product_name,
+        sku: newProduct.sku,
+        barcode: newProduct.barcode,
+        category: newProduct.category === 'Diğer' ? newProduct.custom_category : newProduct.category,
+        notes: newProduct.description,
+        seller_id: parseInt(params.id),
+        image_url: uploadedImage || undefined,
+      }));
 
-      const data = await response.json();
-
-      if (data.success) {
+      if (createProduct.fulfilled.match(result)) {
         setShowAddProductModal(false);
-        setUploadedImage(null);
+        fetchUserProducts();
         setNewProduct({
           product_name: '',
           sku: '',
@@ -131,17 +107,16 @@ export default function UserDetailPage({ params }: { params: { id: string } }) {
           length: '',
           weight: ''
         });
-        fetchUserProducts(); // Refresh products list
-        alert('Ürün başarıyla eklendi!');
-      } else {
-        alert(data.message || 'Ürün eklenirken hata oluştu.');
+        setUploadedImage(null);
       }
     } catch (err) {
-      alert('Ürün eklenirken bir hata oluştu.');
+      console.error('Error adding product:', err);
     } finally {
       setAdding(false);
     }
   };
+
+  const user = selectedUser;
 
   if (loading) {
     return (

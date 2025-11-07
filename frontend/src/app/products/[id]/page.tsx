@@ -4,17 +4,23 @@ import { useState, useEffect } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import Link from 'next/link';
 import dynamic from 'next/dynamic';
+import { useAppDispatch, useAppSelector } from '@/store';
+import { fetchProductById, updateProduct, deleteProduct } from '@/store/slices/productsSlice';
 
 const ReactQuill = dynamic(() => import('react-quill'), { ssr: false });
 
 export default function ProductDetailPage() {
   const router = useRouter();
   const params = useParams();
-  const productId = params.id;
+  const productId = params.id as string;
+  const dispatch = useAppDispatch();
   
-  const [loading, setLoading] = useState(true);
+  // Redux state
+  const selectedProduct = useAppSelector((state: any) => state.products.selectedProduct);
+  const loading = useAppSelector((state: any) => state.products.loading as boolean);
+  const error = useAppSelector((state: any) => state.products.error as string | null);
+  
   const [saving, setSaving] = useState(false);
-  const [error, setError] = useState<string>('');
   const [uploadedImage, setUploadedImage] = useState<string | null>(null);
 
   const [formData, setFormData] = useState({
@@ -38,57 +44,34 @@ export default function ProductDetailPage() {
   });
 
   useEffect(() => {
-    fetchProduct();
-  }, [productId]);
+    dispatch(fetchProductById(productId));
+  }, [dispatch, productId]);
 
-  const fetchProduct = async () => {
-    try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/products/${productId}`, {
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
-        }
+  useEffect(() => {
+    if (selectedProduct) {
+      setFormData({
+        product_name: selectedProduct.product_name || '',
+        sku: selectedProduct.sku || '',
+        barcode: selectedProduct.barcode || '',
+        category: selectedProduct.category || '',
+        custom_category: '',
+        product_type: 'Fiziksel',
+        description: selectedProduct.notes || '',
+        tags: '',
+        price: selectedProduct.original_price?.toString() || '',
+        currency: 'Amerikan Doları',
+        quantity: '10',
+        height: '25',
+        width: '15',
+        length: '5',
+        weight: '0.25',
       });
       
-      const data = await response.json();
-      
-      if (data.success) {
-        const product = data.data;
-        setFormData({
-          product_name: product.product_name || '',
-          sku: product.sku || '',
-          barcode: product.barcode || '',
-          category: product.category || '',
-          custom_category: '',
-          product_type: 'Fiziksel',
-          description: product.notes || '',
-          tags: '',
-          price: product.original_price?.toString() || '',
-          currency: 'Amerikan Doları',
-          quantity: '10',
-          height: '25',
-          width: '15',
-          length: '5',
-          weight: '0.25',
-          shipping_name: '',
-          shipping_address: '',
-          shipping_city: '',
-          shipping_postal_code: '',
-          shipping_country: 'Türkiye',
-          shipping_phone: '',
-        });
-        
-        if (product.image_url) {
-          setUploadedImage(product.image_url);
-        }
-      } else {
-        setError(data.message);
+      if (selectedProduct.image_url) {
+        setUploadedImage(selectedProduct.image_url);
       }
-    } catch (err) {
-      setError('Ürün bilgileri yüklenirken bir hata oluştu.');
-    } finally {
-      setLoading(false);
     }
-  };
+  }, [selectedProduct]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
@@ -102,7 +85,7 @@ export default function ProductDetailPage() {
     const file = e.target.files?.[0];
     if (file) {
       if (file.size > 900 * 1024) {
-        setError('Görsel boyutu 900KB\'dan küçük olmalıdır');
+        alert('Görsel boyutu 900KB\'dan küçük olmalıdır');
         return;
       }
       
@@ -117,34 +100,25 @@ export default function ProductDetailPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setSaving(true);
-    setError('');
 
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/products/${productId}`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
-        },
-        body: JSON.stringify({
+      const result = await dispatch(updateProduct({
+        id: productId,
+        data: {
           product_name: formData.product_name,
           sku: formData.sku,
           barcode: formData.barcode,
           category: formData.category === 'Diğer' ? formData.custom_category : formData.category,
           notes: formData.description,
           original_price: parseFloat(formData.price) || 0
-        })
-      });
+        }
+      }));
 
-      const data = await response.json();
-
-      if (data.success) {
+      if (updateProduct.fulfilled.match(result)) {
         router.push('/products');
-      } else {
-        setError(data.message || 'Ürün güncellenirken bir hata oluştu');
       }
     } catch (err) {
-      setError('Ürün güncellenirken bir hata oluştu');
+      console.error('Error updating product:', err);
     } finally {
       setSaving(false);
     }

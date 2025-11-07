@@ -4,14 +4,20 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Loading from '@/components/Loading';
-import { isAuthenticated, getAuthData, isAdmin } from '@/lib/auth';
-import type { Product } from '@/types';
+import { useAppDispatch, useAppSelector } from '@/store';
+import { fetchProducts } from '@/store/slices/productsSlice';
 
 export default function DashboardPage() {
   const router = useRouter();
+  const dispatch = useAppDispatch();
+  
+  // Redux state
+  const user = useAppSelector((state: any) => state.auth.user);
+  const isAuthenticated = useAppSelector((state: any) => state.auth.isAuthenticated as boolean);
+  const products = useAppSelector((state: any) => state.products.items) || [];
+  const productsLoading = useAppSelector((state: any) => state.products.loading as boolean);
+  
   const [loading, setLoading] = useState<boolean>(true);
-  const [products, setProducts] = useState<Product[]>([]);
-  const [users, setUsers] = useState<any[]>([]);
   const [stats, setStats] = useState({
     totalProducts: 0,
     totalUsers: 0,
@@ -20,34 +26,24 @@ export default function DashboardPage() {
     readyToShip: 0,
     completedOrders: 0,
   });
-  const { user } = getAuthData();
-  const userIsAdmin = isAdmin();
+  
+  const userIsAdmin = user?.role === 'admin';
 
   useEffect(() => {
-    if (!isAuthenticated()) {
+    if (!isAuthenticated) {
       router.push('/login');
       return;
     }
 
     fetchDashboardData();
-  }, [router]);
+  }, [isAuthenticated, router]);
 
   const fetchDashboardData = async () => {
     try {
       setLoading(true);
 
-      // Fetch products
-      const productsResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/products`, {
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
-        }
-      });
-
-      const productsData = await productsResponse.json();
-
-      if (productsData.success) {
-        setProducts(productsData.data.slice(0, 5)); // Son 5 ürün
-      }
+      // Fetch products using Redux
+      await dispatch(fetchProducts({ page: 1, limit: 5 }));
 
       // Fetch statistics from backend
       const statsResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/products/stats`, {
@@ -309,7 +305,7 @@ export default function DashboardPage() {
                 </div>
               ) : (
                 <div className="space-y-4">
-                  {products.map((product) => (
+                  {products.map((product: any) => (
                     <div 
                       key={product.id}
                       className="flex items-center justify-between p-4 hover:bg-gray-50 rounded-lg transition-colors cursor-pointer"

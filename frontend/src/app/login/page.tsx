@@ -3,19 +3,21 @@
 import { useState, FormEvent, ChangeEvent } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { authAPI } from '@/lib/api';
-import { setAuthData } from '@/lib/auth';
+import { useAppDispatch, useAppSelector } from '@/store';
+import { login } from '@/store/slices/authSlice';
 import type { LoginFormData } from '@/types';
 import { FaGoogle, FaDiscord, FaEye, FaEyeSlash } from 'react-icons/fa';
 
 export default function LoginPage() {
   const router = useRouter();
+  const dispatch = useAppDispatch();
+  const loading = useAppSelector((state: any) => state.auth.loading as boolean);
+  const authError = useAppSelector((state: any) => state.auth.error as string | null);
+  
   const [formData, setFormData] = useState<LoginFormData>({
     email: '',
     password: '',
   });
-  const [error, setError] = useState<string>('');
-  const [loading, setLoading] = useState<boolean>(false);
   const [showPassword, setShowPassword] = useState<boolean>(false);
 
   const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
@@ -23,25 +25,15 @@ export default function LoginPage() {
       ...formData,
       [e.target.name]: e.target.value,
     });
-    setError('');
   };
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    setLoading(true);
-    setError('');
 
-    try {
-      const response = await authAPI.login(formData.email, formData.password);
-
-      if (response.success && response.data) {
-        setAuthData(response.data.token, response.data.user);
-        router.push('/dashboard');
-      }
-    } catch (err: any) {
-      setError(err.response?.data?.message || 'Giriş yapılamadı. Lütfen tekrar deneyin.');
-    } finally {
-      setLoading(false);
+    const result = await dispatch(login(formData));
+    
+    if (login.fulfilled.match(result)) {
+      router.push('/dashboard');
     }
   };
 
@@ -131,9 +123,9 @@ export default function LoginPage() {
 
           {/* Login Form */}
           <form onSubmit={handleSubmit} className="space-y-5">
-            {error && (
+            {authError && (
               <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm">
-                {error}
+                {authError}
               </div>
             )}
 

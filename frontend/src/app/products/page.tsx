@@ -3,6 +3,8 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { useAppDispatch, useAppSelector } from '@/store';
+import { fetchProducts } from '@/store/slices/productsSlice';
 import type { Product, ProductStatus } from '@/types';
 
 // Helper function to get status display info
@@ -43,38 +45,20 @@ const getStatusInfo = (status?: ProductStatus) => {
 
 export default function ProductsPage() {
   const router = useRouter();
-  const [products, setProducts] = useState<Product[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string>('');
+  const dispatch = useAppDispatch();
+  
+  // Redux state
+  const products = useAppSelector((state: any) => state.products.items as Product[]) || [];
+  const loading = useAppSelector((state: any) => state.products.loading as boolean);
+  const error = useAppSelector((state: any) => state.products.error as string | null);
+  
   const [filterTab, setFilterTab] = useState<'all' | 'published' | 'draft'>('all');
   const [isSortDropdownOpen, setIsSortDropdownOpen] = useState(false);
   const [sortBy, setSortBy] = useState('newest');
 
   useEffect(() => {
-    fetchProducts();
-  }, []);
-
-  const fetchProducts = async () => {
-    try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/products`, {
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
-        }
-      });
-      
-      const data = await response.json();
-      
-      if (data.success) {
-        setProducts(data.data);
-      } else {
-        setError(data.message);
-      }
-    } catch (err) {
-      setError('Ürünler yüklenirken bir hata oluştu.');
-    } finally {
-      setLoading(false);
-    }
-  };
+    dispatch(fetchProducts({ page: 1, limit: 50 }));
+  }, [dispatch]);
 
   if (loading) {
     return (
