@@ -67,8 +67,8 @@ export default function ProductDetailPage() {
         weight: '0.25',
       });
       
-      if (selectedProduct.image_url) {
-        setUploadedImage(selectedProduct.image_url);
+      if (selectedProduct.product_image || selectedProduct.image_url) {
+        setUploadedImage(selectedProduct.product_image || selectedProduct.image_url || null);
       }
     }
   }, [selectedProduct]);
@@ -81,19 +81,43 @@ export default function ProductDetailPage() {
     }));
   };
 
-  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      if (file.size > 900 * 1024) {
-        alert('Görsel boyutu 900KB\'dan küçük olmalıdır');
+      // Dosya boyutu kontrolü (max 5MB)
+      if (file.size > 5 * 1024 * 1024) {
+        alert('Görsel boyutu 5MB\'dan küçük olmalıdır');
         return;
       }
       
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setUploadedImage(reader.result as string);
-      };
-      reader.readAsDataURL(file);
+      setSaving(true);
+
+      try {
+        // Upload to Cloudinary
+        const formData = new FormData();
+        formData.append('image', file);
+
+        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/upload/image`, {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${localStorage.getItem('token')}`
+          },
+          body: formData
+        });
+
+        const data = await response.json();
+
+        if (data.success && data.data.url) {
+          setUploadedImage(data.data.url); // Store Cloudinary URL
+        } else {
+          alert(data.message || 'Resim yüklenirken bir hata oluştu');
+        }
+      } catch (err) {
+        console.error('Image upload error:', err);
+        alert('Resim yüklenirken bir hata oluştu');
+      } finally {
+        setSaving(false);
+      }
     }
   };
 
@@ -110,6 +134,7 @@ export default function ProductDetailPage() {
           barcode: formData.barcode,
           category: formData.category === 'Diğer' ? formData.custom_category : formData.category,
           notes: formData.description,
+          product_image: uploadedImage, // Send Cloudinary URL
           original_price: parseFloat(formData.price) || 0
         }
       }));

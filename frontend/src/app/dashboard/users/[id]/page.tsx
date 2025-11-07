@@ -279,10 +279,10 @@ export default function UserDetailPage({ params }: { params: { id: string } }) {
                         >
                           <td className="py-4">
                             <div className="flex items-center space-x-3">
-                              <div className="w-10 h-10 bg-gray-200 rounded flex items-center justify-center overflow-hidden flex-shrink-0">
-                                {product.image_url ? (
+                              <div className="w-16 h-16 bg-gray-200 rounded flex items-center justify-center overflow-hidden flex-shrink-0">
+                                {(product.product_image || product.image_url) ? (
                                   <img 
-                                    src={product.image_url} 
+                                    src={product.product_image || product.image_url} 
                                     alt={product.product_name}
                                     className="w-full h-full object-cover"
                                   />

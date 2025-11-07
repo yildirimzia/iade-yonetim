@@ -28,7 +28,8 @@ export interface Product {
   category: string;
   original_price?: number;
   notes?: string;
-  image_url?: string;
+  product_image?: string;
+  image_url?: string; // Deprecated: use product_image
   created_at: string;
   seller_name?: string;
   company?: string;
@@ -50,6 +51,7 @@ export interface ProductCreateData {
   category: string;
   original_price?: number;
   notes?: string;
+  product_image?: string;
 }
 
 // Return Types

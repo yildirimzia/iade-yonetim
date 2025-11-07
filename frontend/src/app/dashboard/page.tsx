@@ -313,8 +313,8 @@ export default function DashboardPage() {
                     >
                       <div className="flex items-center space-x-4">
                         <div className="w-12 h-12 bg-gray-200 rounded-lg flex items-center justify-center overflow-hidden">
-                          {product.image_url ? (
-                            <img src={product.image_url} alt={product.product_name} className="w-full h-full object-cover" />
+                          {(product.product_image || product.image_url) ? (
+                            <img src={product.product_image || product.image_url} alt={product.product_name} className="w-full h-full object-cover" />
                           ) : (
                             <svg className="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
@@ -323,7 +323,17 @@ export default function DashboardPage() {
                         </div>
                         <div>
                           <p className="text-sm font-medium text-gray-900">{product.product_name}</p>
-                          <p className="text-xs text-gray-500">{product.sku || 'SKU yok'} • {product.category}</p>
+                          <div className="flex items-center space-x-2 text-xs text-gray-500">
+                            <span>{product.sku || 'SKU yok'}</span>
+                            <span>•</span>
+                            <span>{product.category}</span>
+                            {userIsAdmin && product.seller_name && (
+                              <>
+                                <span>•</span>
+                                <span className="text-indigo-600 font-medium">{product.seller_name}</span>
+                              </>
+                            )}
+                          </div>
                         </div>
                       </div>
                       <div className="flex items-center space-x-4">

@@ -9,6 +9,7 @@ const productsRoutes = require('./routes/products');
 const returnsRoutes = require('./routes/returns');
 const inventoryRoutes = require('./routes/inventory');
 const shipmentsRoutes = require('./routes/shipments');
+const uploadRoutes = require('./routes/upload');
 
 // Import database
 const pool = require('./config/database');
@@ -46,6 +47,7 @@ app.use('/api/products', productsRoutes);
 app.use('/api/returns', returnsRoutes);
 app.use('/api/inventory', inventoryRoutes);
 app.use('/api/shipments', shipmentsRoutes);
+app.use('/api/upload', uploadRoutes);
 
 // Root endpoint
 app.get('/', (req, res) => {

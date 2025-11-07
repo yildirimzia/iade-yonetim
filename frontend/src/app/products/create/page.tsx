@@ -39,20 +39,44 @@ export default function CreateProductPage() {
     }));
   };
 
-  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      // Dosya boyutu kontrolü (max 900KB ≈ 900x400)
-      if (file.size > 900 * 1024) {
-        setError('Görsel boyutu 900KB\'dan küçük olmalıdır');
+      // Dosya boyutu kontrolü (max 5MB)
+      if (file.size > 5 * 1024 * 1024) {
+        setError('Görsel boyutu 5MB\'dan küçük olmalıdır');
         return;
       }
       
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setUploadedImage(reader.result as string);
-      };
-      reader.readAsDataURL(file);
+      setLoading(true);
+      setError('');
+
+      try {
+        // Upload to Cloudinary
+        const formData = new FormData();
+        formData.append('image', file);
+
+        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/upload/image`, {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${localStorage.getItem('token')}`
+          },
+          body: formData
+        });
+
+        const data = await response.json();
+
+        if (data.success && data.data.url) {
+          setUploadedImage(data.data.url); // Store Cloudinary URL
+        } else {
+          setError(data.message || 'Resim yüklenirken bir hata oluştu');
+        }
+      } catch (err) {
+        console.error('Image upload error:', err);
+        setError('Resim yüklenirken bir hata oluştu');
+      } finally {
+        setLoading(false);
+      }
     }
   };
 
@@ -74,6 +98,7 @@ export default function CreateProductPage() {
           barcode: formData.barcode,
           category: formData.category === 'Diğer' ? formData.custom_category : formData.category,
           notes: formData.description,
+          product_image: uploadedImage, // Send Cloudinary URL
           // Şimdilik varsayılan değerler
           original_price: 0
         })

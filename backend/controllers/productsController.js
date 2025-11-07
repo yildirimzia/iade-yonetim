@@ -126,7 +126,7 @@ const getProduct = async (req, res) => {
 // @access  Private (Seller/Admin)
 const createProduct = async (req, res) => {
   try {
-    const { product_name, sku, barcode, category, original_price, notes, user_id } = req.body;
+    const { product_name, sku, barcode, category, original_price, notes, user_id, product_image } = req.body;
 
     // Validation
     if (!product_name || !category) {
@@ -140,10 +140,10 @@ const createProduct = async (req, res) => {
     const sellerId = req.user.role === 'admin' && user_id ? user_id : req.user.id;
 
     const result = await pool.query(
-      `INSERT INTO products (seller_id, product_name, sku, barcode, category, original_price, notes)
-       VALUES ($1, $2, $3, $4, $5, $6, $7)
+      `INSERT INTO products (seller_id, product_name, sku, barcode, category, original_price, notes, product_image)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
        RETURNING *`,
-      [sellerId, product_name, sku || null, barcode || null, category, original_price || null, notes || null]
+      [sellerId, product_name, sku || null, barcode || null, category, original_price || null, notes || null, product_image || null]
     );
 
     res.status(201).json({
@@ -173,6 +173,7 @@ const updateProduct = async (req, res) => {
       category, 
       original_price, 
       notes,
+      product_image,
       shipping_name,
       shipping_phone,
       shipping_address,
@@ -211,14 +212,15 @@ const updateProduct = async (req, res) => {
            category = COALESCE($4, category),
            original_price = COALESCE($5, original_price),
            notes = COALESCE($6, notes),
-           shipping_name = COALESCE($7, shipping_name),
-           shipping_phone = COALESCE($8, shipping_phone),
-           shipping_address = COALESCE($9, shipping_address),
-           shipping_city = COALESCE($10, shipping_city),
-           shipping_postal_code = COALESCE($11, shipping_postal_code),
-           shipping_country = COALESCE($12, shipping_country),
+           product_image = COALESCE($7, product_image),
+           shipping_name = COALESCE($8, shipping_name),
+           shipping_phone = COALESCE($9, shipping_phone),
+           shipping_address = COALESCE($10, shipping_address),
+           shipping_city = COALESCE($11, shipping_city),
+           shipping_postal_code = COALESCE($12, shipping_postal_code),
+           shipping_country = COALESCE($13, shipping_country),
            shipping_updated_at = NOW()
-       WHERE id = $13
+       WHERE id = $14
        RETURNING *`;
       params = [
         product_name, 
@@ -227,6 +229,7 @@ const updateProduct = async (req, res) => {
         category, 
         original_price, 
         notes,
+        product_image,
         shipping_name,
         shipping_phone,
         shipping_address,
@@ -243,8 +246,9 @@ const updateProduct = async (req, res) => {
            barcode = COALESCE($3, barcode),
            category = COALESCE($4, category),
            original_price = COALESCE($5, original_price),
-           notes = COALESCE($6, notes)
-       WHERE id = $7
+           notes = COALESCE($6, notes),
+           product_image = COALESCE($7, product_image)
+       WHERE id = $8
        RETURNING *`;
       params = [
         product_name, 
@@ -253,6 +257,7 @@ const updateProduct = async (req, res) => {
         category, 
         original_price, 
         notes,
+        product_image,
         id
       ];
     }

@@ -223,7 +223,7 @@ const login = async (req, res) => {
 const getProfile = async (req, res) => {
   try {
     const result = await pool.query(
-      'SELECT id, email, name, phone, company, role, created_at FROM users WHERE id = $1',
+      'SELECT id, email, name, phone, company, role, profile_photo, created_at FROM users WHERE id = $1',
       [req.user.id]
     );
 
@@ -252,16 +252,17 @@ const getProfile = async (req, res) => {
 // @access  Private
 const updateProfile = async (req, res) => {
   try {
-    const { name, phone, company } = req.body;
+    const { name, phone, company, profile_photo } = req.body;
 
     const result = await pool.query(
       `UPDATE users
        SET name = COALESCE($1, name),
            phone = COALESCE($2, phone),
-           company = COALESCE($3, company)
-       WHERE id = $4
-       RETURNING id, email, name, phone, company, role`,
-      [name, phone, company, req.user.id]
+           company = COALESCE($3, company),
+           profile_photo = COALESCE($4, profile_photo)
+       WHERE id = $5
+       RETURNING id, email, name, phone, company, role, profile_photo`,
+      [name, phone, company, profile_photo, req.user.id]
     );
 
     res.json({
