@@ -275,6 +275,7 @@ export default function ProductsPage() {
                   <td className="px-6 py-4 whitespace-nowrap">
                     {(() => {
                       const statusInfo = getStatusInfo(product.status);
+                      console.log('statusInfo', statusInfo);
                       return (
                         <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${statusInfo.color}`}>
                           <span className={`w-1.5 h-1.5 rounded-full ${statusInfo.dotColor} mr-1.5`}></span>

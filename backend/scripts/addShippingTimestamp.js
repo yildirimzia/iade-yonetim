@@ -1,31 +1,31 @@
 const pool = require('../config/database');
 
-async function addShippingTimestamp() {
+async function addUpdatedAt() {
   try {
-    console.log('Adding shipping_updated_at column to products table...');
+    console.log('updated_at kolonu ekleniyor...');
 
     await pool.query(`
       ALTER TABLE products 
-      ADD COLUMN IF NOT EXISTS shipping_updated_at TIMESTAMP;
+      ADD COLUMN IF NOT EXISTS updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP;
     `);
 
-    console.log('✅ shipping_updated_at column added successfully!');
+    console.log('✅ updated_at kolonu eklendi!');
 
-    // Update existing records that have shipping info
+    // Mevcut kayıtlara created_at değerini ata
     await pool.query(`
       UPDATE products 
-      SET shipping_updated_at = updated_at 
-      WHERE shipping_name IS NOT NULL 
-      AND shipping_updated_at IS NULL;
+      SET updated_at = created_at 
+      WHERE updated_at IS NULL;
     `);
 
-    console.log('✅ Existing shipping records updated with timestamp!');
+    console.log('✅ Mevcut kayıtlar güncellendi!');
 
-    process.exit(0);
+    pool.end();
   } catch (error) {
-    console.error('Error adding shipping timestamp column:', error);
+    console.error('❌ Hata:', error.message);
+    pool.end();
     process.exit(1);
   }
 }
 
-addShippingTimestamp();
+addUpdatedAt();
