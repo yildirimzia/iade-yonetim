@@ -271,6 +271,8 @@ const updateProduct = async (req, res) => {
       });
     }
 
+    console.log('✅ Updated Product:', result.rows[0]); 
+
     res.json({
       success: true,
       message: 'Ürün güncellendi.',
@@ -444,6 +446,8 @@ const updateProductStatus = async (req, res) => {
        RETURNING *`,
       [status, id]
     );
+
+    console.log('✅ Updated Product Status1111:', result.rows[0]);
 
     if (result.rows.length === 0) {
       return res.status(404).json({

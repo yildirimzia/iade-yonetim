@@ -22,6 +22,8 @@ export default function ProductDetailPage() {
   
   const [saving, setSaving] = useState(false);
   const [uploadedImage, setUploadedImage] = useState<string | null>(null);
+  const [deleting, setDeleting] = useState(false); // ⭐ Yeni state
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
 
   const [formData, setFormData] = useState({
     product_name: '',
@@ -118,6 +120,24 @@ export default function ProductDetailPage() {
       } finally {
         setSaving(false);
       }
+    }
+  };
+
+  const handleDelete = async () => {
+    setDeleting(true);
+
+    try {
+      const result = await dispatch(deleteProduct(productId));
+
+      if (deleteProduct.fulfilled.match(result)) {
+        router.push('/products');
+      }
+    } catch (err) {
+      console.error('Error deleting product:', err);
+      alert('Ürün silinirken bir hata oluştu');
+    } finally {
+      setDeleting(false);
+      setShowDeleteModal(false);
     }
   };
 
@@ -598,6 +618,14 @@ export default function ProductDetailPage() {
                 className="w-full px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-medium rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {saving ? 'Kaydediliyor...' : 'Değişiklikleri kaydet'}
+              </button>
+              <button
+                type="button"
+                onClick={handleDelete}
+                disabled={deleting}
+                className="w-full px-4 py-2 border border-red-600 text-red-600 hover:bg-red-50 font-medium rounded-lg transition-colors text-center"
+              >
+                {deleting ? 'Siliniyor...' : 'Ürünü Sil'}
               </button>
             </div>
           </div>

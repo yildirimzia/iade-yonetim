@@ -173,7 +173,6 @@ export default function ShippingPage() {
         <div className="col-span-1">
           <div className="bg-white border border-gray-200 rounded-lg p-6">
             <h2 className="text-lg font-semibold text-gray-900 mb-4">Ürün Seçin</h2>
-            
             {products.length === 0 ? (
               <p className="text-sm text-gray-500 text-center py-4">Henüz ürün eklenmemiş.</p>
             ) : (

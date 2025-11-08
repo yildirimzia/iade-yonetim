@@ -7,6 +7,7 @@ import { useAppDispatch, useAppSelector } from '@/store';
 import { login } from '@/store/slices/authSlice';
 import type { LoginFormData } from '@/types';
 import { FaGoogle, FaDiscord, FaEye, FaEyeSlash } from 'react-icons/fa';
+import Image from 'next/image';
 
 export default function LoginPage() {
   const router = useRouter();
@@ -60,14 +61,14 @@ export default function LoginPage() {
         </div>
 
         {/* Company Logos */}
-        <div className="grid grid-cols-3 gap-6 opacity-70">
+        {/* <div className="grid grid-cols-3 gap-6 opacity-70">
           <div className="text-white text-xl font-bold">accenture</div>
           <div className="text-white text-xl font-bold">AT&T</div>
           <div className="text-white text-xl font-bold">Bolt</div>
           <div className="text-white text-xl font-bold">SAMSUNG</div>
           <div className="text-white text-xl font-bold">aws</div>
           <div className="text-white text-xl font-bold">VISMA</div>
-        </div>
+        </div> */}
       </div>
 
       {/* Right Side - Login Form */}
@@ -101,13 +102,6 @@ export default function LoginPage() {
             >
               <FaGoogle className="w-5 h-5 text-red-500" />
               <span className="text-gray-700 font-medium">Google ile devam et</span>
-            </button>
-            <button
-              type="button"
-              className="w-full flex items-center justify-center space-x-3 px-4 py-3 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
-            >
-              <FaDiscord className="w-5 h-5 text-indigo-500" />
-              <span className="text-gray-700 font-medium">Discord ile devam et</span>
             </button>
           </div>
 
