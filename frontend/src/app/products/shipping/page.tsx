@@ -21,6 +21,8 @@ export default function ShippingPage() {
     shipping_city: '',
     shipping_postal_code: '',
     shipping_country: 'Türkiye',
+    shipping_company: '',
+    shipping_tracking_code: '',
   });
 
   useEffect(() => {
@@ -56,6 +58,8 @@ export default function ShippingPage() {
             shipping_city: firstProduct.shipping_city || '',
             shipping_postal_code: firstProduct.shipping_postal_code || '',
             shipping_country: firstProduct.shipping_country || 'Türkiye',
+            shipping_company: firstProduct.shipping_company || '',
+            shipping_tracking_code: firstProduct.shipping_tracking_code || '',
           });
         }
       } else {
@@ -85,6 +89,8 @@ export default function ShippingPage() {
       shipping_city: product.shipping_city || '',
       shipping_postal_code: product.shipping_postal_code || '',
       shipping_country: product.shipping_country || 'Türkiye',
+      shipping_company: product.shipping_company || '',
+      shipping_tracking_code: product.shipping_tracking_code || '',
     });
   };
 
@@ -325,6 +331,21 @@ export default function ShippingPage() {
                         <p className="text-sm text-gray-900 font-medium">{selectedProduct.shipping_country}</p>
                       </div>
                     </div>
+
+                    <div>
+                      <p className="text-xs font-medium text-gray-500 mb-1">Kargo Firması</p>
+                      <p className="text-sm text-gray-900 font-medium">{selectedProduct.shipping_company || '-'}</p>
+                      <p className="text-xs font-medium text-gray-500 mb-1">Takip Kodu</p>
+                      <p className="text-xs text-gray-500">
+                        {selectedProduct.shipping_tracking_code
+                          ? `Takip Kodu: ${selectedProduct.shipping_tracking_code}`
+                          : 'Takip kodu girilmedi'}
+                      </p>
+                    </div>
+
+                   
+
+                
                   </div>
 
                   {/* Info Box */}
@@ -461,6 +482,26 @@ export default function ShippingPage() {
                       <option value="İspanya">İspanya</option>
                       <option value="Amerika">Amerika</option>
                     </select>
+                  </div>
+
+                  <div>
+                  <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <p className="text-xs font-medium text-gray-500 mb-1">Kargo Firması <span className="text-red-500">*</span></p>
+                        <select className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500" name="shipping_company" value={shippingData.shipping_company} onChange={handleInputChange}>
+                          <option value="DHL">DHL</option>
+                          <option value="UPS">UPS</option>
+                          <option value="FedEx">FedEx</option>
+                          <option value="Aras Kargo">Aras Kargo</option>
+                          <option value="Yurtiçi Kargo">Yurtiçi Kargo</option>
+                        </select>
+                      </div>
+                     
+                      <div>
+                        <p className="text-xs font-medium text-gray-500 mb-1">Takip Kodu <span className="text-red-500">*</span></p>
+                        <input type="text" className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500" placeholder="Takip Kodu" name="shipping_tracking_code" value={shippingData.shipping_tracking_code} onChange={handleInputChange} />
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>

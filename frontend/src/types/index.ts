@@ -40,6 +40,8 @@ export interface Product {
   shipping_city?: string;
   shipping_postal_code?: string;
   shipping_country?: string;
+  shipping_company?: string;
+  shipping_tracking_code?: string;
   shipping_updated_at?: string;
   status?: ProductStatus;
 }
