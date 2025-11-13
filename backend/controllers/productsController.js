@@ -179,7 +179,9 @@ const updateProduct = async (req, res) => {
       shipping_address,
       shipping_city,
       shipping_postal_code,
-      shipping_country
+      shipping_country,
+      shipping_company,
+      shipping_tracking_code
     } = req.body;
 
     // Check ownership (sellers can only update their own products)
@@ -199,7 +201,7 @@ const updateProduct = async (req, res) => {
 
     // Check if shipping info is being updated
     const shouldUpdateShippingTimestamp = shipping_name || shipping_phone || shipping_address || 
-                                         shipping_city || shipping_postal_code || shipping_country;
+                                         shipping_city || shipping_postal_code || shipping_country || shipping_company || shipping_tracking_code;
 
     let query, params;
 
@@ -219,6 +221,8 @@ const updateProduct = async (req, res) => {
            shipping_city = COALESCE($11, shipping_city),
            shipping_postal_code = COALESCE($12, shipping_postal_code),
            shipping_country = COALESCE($13, shipping_country),
+           shipping_company = COALESCE($14, shipping_company),
+           shipping_tracking_code = COALESCE($15, shipping_tracking_code),
            shipping_updated_at = NOW()
        WHERE id = $14
        RETURNING *`;
@@ -236,6 +240,8 @@ const updateProduct = async (req, res) => {
         shipping_city,
         shipping_postal_code,
         shipping_country,
+        shipping_company,
+        shipping_tracking_code,
         id
       ];
     } else {
